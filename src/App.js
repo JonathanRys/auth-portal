@@ -1,24 +1,25 @@
-import logo from './logo.svg';
+import Registration from './components/Registration';
+import Layout from './components/Layout';
+import Login from './components/Login';
+import PhysGPT from './components/PhysGPT';
+import Unauthorized from './components/Unauthorized'
 import './App.css';
+import { getCookie } from './util/cookie';
+import { Routes, Route } from 'react-router-dom'
+
+const user = getCookie('user') ;
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Routes>
+      <Route path="/" element={ <Layout /> }>
+        <Route path="/" element={ user ? <Login /> : <Registration /> } />
+        <Route path='login' element={ <Login /> } />
+        <Route path='register' element={ <Registration /> } />
+        <Route path='gpt' element={ <PhysGPT /> } />
+        <Route path='unauthorized' element={ <Unauthorized /> } />
+      </Route>
+    </Routes>
   );
 }
 
