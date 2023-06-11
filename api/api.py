@@ -3,11 +3,15 @@ import json
 import uuid
 import boto3
 import hashlib
+import logging
 
 from datetime import datetime
 
 from . import config
 from .registration_email import validate_access_key, send_reset_password_email, send_registration_email
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
 
 user_table_name = config.USER_TABLE
 
@@ -56,7 +60,7 @@ def http_response(statusCode: int, body: any=None):
     """Generates a standard HTTP response"""
     response = {
         "statusCode": statusCode,
-        "accessToken": get_access_token(),
+        "accessToken": body.get('accessToken'),
         "headers": {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": config.APP_ORIGIN
@@ -188,6 +192,9 @@ def login(event: object):
             return http_response(401, 'Token invalid')
     try:
         user_table.update_item(Item={"UserName": username, "LastLogin": datetime.now()})
+    except Exception as e:
+        logger.warn(f'Error updating user {username}: {e}')
+        return http_response(500, 'Server Error')
 
     return http_response(200, "Login success")
 

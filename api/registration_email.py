@@ -1,4 +1,5 @@
 import uuid
+import boto3
 from . import config
 import smtplib, ssl
 from email.mime.text import MIMEText
@@ -52,13 +53,13 @@ def validate_access_key(access_key: str) -> str:
         return username
     return ''
 
-def get_registration_link(recipient: str) -> str:
+def get_registration_link(username: str) -> str:
     """Gets a registration link for the user"""
     access_key = uuid.uuid4()
     token_table.put_item(Item={"UserName": username, "AccessKey": access_key, "Valid": False})
     return f'{config.API_URL}/registration?accessKey={access_key}'
 
-def get_reset_link(recipient: str) -> str:
+def get_reset_link(username: str) -> str:
     """Gets a reset password link"""
     access_key = uuid.uuid4()
     token_table.update_item(Item={"UserName": username, "AccessKey": access_key, "Valid": False})
