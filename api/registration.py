@@ -57,7 +57,7 @@ def get_registration_link(username: str) -> str:
     """Gets a registration link for the user"""
     access_key = uuid.uuid4()
     token_table.put_item(Item={"UserName": username, "AccessKey": access_key, "Valid": False})
-    return f'{config.API_URL}/registration?accessKey={access_key}'
+    return f'{config.API_URL}/confirm?accessKey={access_key}'
 
 def get_reset_link(username: str) -> str:
     """Gets a reset password link"""

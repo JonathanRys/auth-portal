@@ -1,6 +1,5 @@
 import re
 import json
-import uuid
 import boto3
 import hashlib
 import logging
@@ -8,7 +7,7 @@ import logging
 from datetime import datetime
 
 from . import config
-from .registration_email import validate_access_key, send_reset_password_email, send_registration_email
+from .registration import validate_acessKey, send_reset_password_email, send_registration_email
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -84,12 +83,18 @@ def is_valid_user(username: str):
 
 # Handler methods
 def confirm_email(params: object):
-    """Confirm email endpoint (GET)"""
-    access_key = params.get('accessKey')
-    username = validate_access_key(access_key)
+    """Confirm registration email endpoint (GET)"""
+    acessKey = params.get('accessKey')
+    username = validate_acessKey(acessKey)
     if username:
-        user_table.update_item(Item={"UserName": username, "AccessKey": access_key})
-        return http_response(200, 'Email confirmed')
+        user_table.update_item(Item={
+            "UserName": username,
+            "AccessKey": acessKey,
+            "LastLogin": datetime.now(),
+            "Roles": "Viewer",
+            "Valid": True
+        })
+        return http_response(200, {"accessKey": acessKey, "message": "Email confirmed"})
     return http_response(403, 'Forbidden')
 
 def refresh_access_token(params: object):
@@ -101,7 +106,7 @@ def reset_password(event: object):
     username = event.get('username')
     # send reset password link in an email
     if send_reset_password_email(username):
-        return http_response(200, 'Password reset email sent')
+        return http_response(200, { "message": "Password reset email sent" })
     return http_response(500, 'Server error')
 
 def change_password(event: object):
@@ -109,7 +114,7 @@ def change_password(event: object):
     username = event.get('username')
     password = event.get('password')
     new_password = event.get('new_password')
-    access_key = event.get('access_key')
+    acessKey = event.get('acessKey')
 
     # validate data
     if not is_valid_user(username) or \
@@ -119,25 +124,18 @@ def change_password(event: object):
         return http_response(403, 'Forbidden')
 
     # validate user
-    db_username = validate_access_key(access_key)
+    db_username = validate_acessKey(acessKey)
     if db_username and db_username == username:
         response = user_table.get_item(Key={"username": username})
         if "Item" in response:
             pw_hash = response.get('Item', {}).get('Password')
             if pw_hash != hashlib.sha3_256(password).hexdigest():
-                return http_response(401, "Unauthorized")
+                return http_response(401, "Incorrect Password")
 
             # update password
             user_table.update_item(Item={"UserName": username, "Password": new_password})
 
-    return http_response(200, 'Password updated')
-
-def registraion(params: object):
-    """Validates the registration email link (GET)"""
-    access_key = params.get('accessKey')
-    username = validate_access_key(access_key)
-    
-    user_table.update_item(Item={"UserName": username, "LastLogin": datetime.now()})
+    return http_response(200, {"accessKey": acessKey, "message": "Password updated"})
 
 def register(event: object):
     """Allow the user to register (POST)"""
@@ -166,19 +164,19 @@ def register(event: object):
         return http_response(500, 'Server error')
 
     # craft response
-    return http_response(200, 'Registration success')
+    return http_response(200, { "message": "Registration success" })
 
 def login(event: object):
     """Allow the user to login (POST)"""
     username = event.get('username')
     password = event.get('password')
-    access_key = event.get('access_key')
+    acessKey = event.get('acessKey')
     # validate / scrub data
     if not is_valid_user(username) or not is_valid_password(password):
         # @todo send alert, someone is hacking or front-end validation is broken 
         return http_response(403, 'Forbidden')
 
-    if not access_key:
+    if not acessKey:
         return http_response(401, 'Token expected')
 
     response = user_table.get_item(Key={"username": username})
@@ -187,7 +185,7 @@ def login(event: object):
         pw_hash = response.get('Item', {}).get('Password')
         if pw_hash != hashlib.sha3_256(password).hexdigest():
             return http_response(401, "Unauthorized")
-        if access_key != response.get('Item', {}).get('AccessKey'):
+        if acessKey != response.get('Item', {}).get('AccessKey'):
             # user needs to confirm their email
             return http_response(401, 'Token invalid')
     try:
@@ -196,7 +194,7 @@ def login(event: object):
         logger.warn(f'Error updating user {username}: {e}')
         return http_response(500, 'Server Error')
 
-    return http_response(200, "Login success")
+    return http_response(200, {"accessKey": acessKey, "message": "Login success"})
 
 # Handler
 routes = {
