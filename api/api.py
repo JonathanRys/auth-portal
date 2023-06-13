@@ -1,58 +1,18 @@
 import re
 import json
-import boto3
 import hashlib
 import logging
 
 from datetime import datetime
 
 from . import config
+from .dynamodb_tables import get_user_table
 from .registration import validate_acessKey, send_reset_password_email, send_registration_email
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-user_table_name = config.USER_TABLE
-
-# connect to DB
-dynamodb = boto3.resource('dynamodb')
-
-if user_table_name not in [table.name for table in dynamodb.tables.all()]:
-    client = boto3.client('dynamodb')
-    client.create_table(
-        TableName=user_table_name,
-        ProvisionedThroughput={
-            "ReadCapacityUnits": 5,
-            "WriteCapacityUnits": 5
-        },
-        KeySchema=[
-            {
-                "AttributeName": "UserName",
-                "KeyType": "HASH"
-            }
-        ],
-        AttributeDefinitions=[
-            {
-                "AttributeName": "UserName",
-                "AttributeType": "S"
-            }, {
-                "AttributeName": "Password",
-                "AttributeType": "S"
-            }, {
-                "AttributeName": "RateLimit",
-                "AttributeType": "N"
-            }, {
-                "AttributeName": "LastLogin",
-                "AttributeType": "S"
-            }, {
-                "AttributeName": "Roles",
-                "AttributeType": "S"
-            }
-
-        ],
-    )
-
-user_table = dynamodb.Table(user_table_name)
+user_table = get_user_table(config.USER_TABLE)
 
 # Utilities
 def http_response(statusCode: int, body: any=None):

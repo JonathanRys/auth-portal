@@ -1,47 +1,11 @@
 import uuid
-import boto3
 from . import config
 import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from .dynamodb_tables import get_token_table
 
-token_table_name = config.TOKEN_TABLE
-
-# connect to DB
-dynamodb = boto3.resource('dynamodb')
-
-if token_table_name not in [table.name for table in dynamodb.tables.all()]:
-    client = boto3.client('dynamodb')
-    client.create_table(
-        TableName=token_table_name,
-        ProvisionedThroughput={
-            "ReadCapacityUnits": 5,
-            "WriteCapacityUnits": 5
-        },
-        KeySchema=[
-            {
-                "AttributeName": "AccessKey",
-                "KeyType": "HASH"
-            }, {
-                "AttributeName": "UserName",
-                "KeyType": "RANGE"
-            }
-        ],
-        AttributeDefinitions=[
-            {
-                "AttributeName": "AccessKey",
-                "AttributeType": "S"
-            }, {
-                "AttributeName": "UserName",
-                "AttributeType": "S"
-            }, {
-                "AttributeName": "Valid",
-                "AttributeType": "B"
-            }
-        ],
-    )
-
-token_table = dynamodb.Table(token_table_name)
+token_table = get_token_table(config.TOKEN_TABLE)
 
 def validate_access_key(access_key: str) -> str:
     """Checks the access key against the DB"""
