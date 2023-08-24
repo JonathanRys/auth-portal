@@ -1,20 +1,20 @@
-import { useState, useEffect, useRef, useContext } from 'react';
+import { useState, useEffect, useRef, useContext, FormEvent } from 'react';
 import { faCheck, faTimes, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { setCookie } from '../util/cookie';
+import { isValidEmail, isValidPassword } from '../util/validations';
 import AuthContext from '../context/AuthProvider';
 import axios from '../api/axios';
 
-const EMAIL_REGEX = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-const PW_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
 const REGISTER_URL = '/register';
 
 const Registration = () => {
+    // @ts-ignore
     const { setAuth } = useContext(AuthContext);
 
-    const userRef = useRef();
-    const errRef = useRef();
+    const userRef = useRef<HTMLInputElement>();
+    const errRef = useRef<HTMLParagraphElement>();
 
     const [user, setUser] = useState('');
     const [userValid, setUserValid] = useState(false);
@@ -29,32 +29,32 @@ const Registration = () => {
     const [matchFocus, setMatchFocus] = useState(false);
 
     const [errMsg, setErrMsg] = useState('');
-    const [success, setSuccess] = useState();
+    const [success, setSuccess] = useState(false);
 
     useEffect(() => {
         userRef.current.focus();
     }, [])
 
     useEffect(() => {
-        setUserValid(EMAIL_REGEX.test(user))
+        setUserValid(isValidEmail(user))
     }, [user])
 
     useEffect(() => {
-        setPasswordValid(PW_REGEX.test(password))
+        setPasswordValid(isValidPassword(password))
         setMatchValid(password === pwMatch)
     }, [password, pwMatch])
 
     useEffect(() => setErrMsg(''), [user, password, pwMatch])
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         switch (true) {
         case !userValid:
-        case !EMAIL_REGEX.test(user):
+        case !isValidEmail(user):
             setErrMsg('Invalid username.');
             return;
         case !passwordValid:
-        case !PW_REGEX.test(password):
+        case !isValidPassword(password):
             setErrMsg('Invalid password.');
             return;
         case !matchValid:

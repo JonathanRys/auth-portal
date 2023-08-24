@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useContext } from 'react';
+import { useState, useEffect, useRef, useContext, FormEvent } from 'react';
 
 import { setCookie } from '../util/cookie';
 import AuthContext from '../context/AuthProvider';
@@ -7,10 +7,11 @@ import axios from '../api/axios';
 const LOGIN_URL = '/login';
 
 const Login = () => {
+    // @ts-ignore
     const { setAuth } = useContext(AuthContext);
 
-    const userRef = useRef();
-    const errRef = useRef();
+    const userRef = useRef<HTMLInputElement>();
+    const errRef = useRef<HTMLParagraphElement>();
 
     const [user, setUser] = useState('');
     const [password, setPassword] = useState('');
@@ -26,7 +27,7 @@ const Login = () => {
         setErrMsg('');
     }, [user, password])
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
 
         try {
