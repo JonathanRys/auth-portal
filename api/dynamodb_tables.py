@@ -3,11 +3,12 @@ import boto3
 # connect to DB
 dynamodb = boto3.resource('dynamodb')
 
-def get_user_table(user_table_name: str) -> dynamodb.Table:
-    if user_table_name not in [table.name for table in dynamodb.tables.all()]:
+def get_users_table(users_table_name: str = "Users") -> dynamodb.Table:
+    """Creates the User table if it doesn't exist and returns the client"""
+    if users_table_name not in [table.name for table in dynamodb.tables.all()]:
         client = boto3.client('dynamodb')
         client.create_table(
-            TableName=user_table_name,
+            TableName=users_table_name,
             ProvisionedThroughput={
                 "ReadCapacityUnits": 5,
                 "WriteCapacityUnits": 5
@@ -22,55 +23,86 @@ def get_user_table(user_table_name: str) -> dynamodb.Table:
                 {
                     "AttributeName": "UserName",
                     "AttributeType": "S"
-                }, {
-                    "AttributeName": "Password",
+                }
+            ],
+        )
+
+    return dynamodb.Table(users_table_name)
+
+def get_tokens_table(tokens_table_name: str = "Tokens") -> dynamodb.Table:
+    """Creates the Token table if it doesn't exist and returns the client"""
+    if tokens_table_name not in [table.name for table in dynamodb.tables.all()]:
+        client = boto3.client('dynamodb')
+        client.create_table(
+            TableName=tokens_table_name,
+            ProvisionedThroughput={
+                "ReadCapacityUnits": 5,
+                "WriteCapacityUnits": 5
+            },
+            KeySchema=[
+                {
+                    "AttributeName": "AccessKey",
+                    "KeyType": "HASH"
+                }
+            ],
+            AttributeDefinitions=[
+                {
+                    "AttributeName": "AccessKey",
                     "AttributeType": "S"
-                }, {
-                    "AttributeName": "RateLimit",
+                }
+            ],
+        )
+
+    return dynamodb.Table(tokens_table_name)
+
+def get_queries_table(queries_table_name: str = "Queries") -> dynamodb.Table:
+    """Creates the Queries table if it doesn't exist and returns the client"""
+    if queries_table_name not in [table.name for table in dynamodb.tables.all()]:
+        client = boto3.client('dynamodb')
+        client.create_table(
+            TableName=queries_table_name,
+            ProvisionedThroughput={
+                "ReadCapacityUnits": 5,
+                "WriteCapacityUnits": 5
+            },
+            KeySchema=[
+                {
+                    "AttributeName": "QueryId",
+                    "KeyType": "HASH"
+                }
+            ],
+            AttributeDefinitions=[
+                {
+                    "AttributeName": "QueryId",
                     "AttributeType": "N"
-                }, {
-                    "AttributeName": "LastLogin",
-                    "AttributeType": "S"
-                }, {
-                    "AttributeName": "Roles",
-                    "AttributeType": "S"
                 }
-
             ],
         )
 
-    return dynamodb.Table(user_table_name)
+    return dynamodb.Table(queries_table_name)
 
-def get_token_table(token_table_name):
-    if token_table_name not in [table.name for table in dynamodb.tables.all()]:
+def get_flagged_docs_table(flagged_docs_table_name: str = "Flagged") -> dynamodb.Table:
+    """Creates the Flagged table if it doesn't exist and returns the client"""
+    if flagged_docs_table_name not in [table.name for table in dynamodb.tables.all()]:
         client = boto3.client('dynamodb')
         client.create_table(
-            TableName=token_table_name,
+            TableName=flagged_docs_table_name,
             ProvisionedThroughput={
                 "ReadCapacityUnits": 5,
                 "WriteCapacityUnits": 5
             },
             KeySchema=[
                 {
-                    "AttributeName": "AccessKey",
+                    "AttributeName": "FlaggedId",
                     "KeyType": "HASH"
-                }, {
-                    "AttributeName": "UserName",
-                    "KeyType": "RANGE"
                 }
             ],
             AttributeDefinitions=[
                 {
-                    "AttributeName": "AccessKey",
-                    "AttributeType": "S"
-                }, {
-                    "AttributeName": "UserName",
-                    "AttributeType": "S"
-                }, {
-                    "AttributeName": "Valid",
-                    "AttributeType": "B"
+                    "AttributeName": "FlaggedId",
+                    "AttributeType": "N"
                 }
             ],
         )
 
-    return dynamodb.Table(token_table_name)
+    return dynamodb.Table(flagged_docs_table_name)

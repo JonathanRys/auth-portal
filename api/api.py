@@ -6,20 +6,20 @@ import logging
 from datetime import datetime
 
 from . import config
-from .dynamodb_tables import get_user_table
-from .registration import validate_acessKey, send_reset_password_email, send_registration_email
+from .dynamodb_tables import get_users_table
+from .registration import validate_access_key, send_reset_password_email, send_registration_email
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-user_table = get_user_table(config.USER_TABLE)
+user_table = get_users_table(config.USER_TABLE)
 
 # Utilities
 def http_response(statusCode: int, body: any=None):
     """Generates a standard HTTP response"""
     response = {
         "statusCode": statusCode,
-        "accessToken": body.get('accessToken'),
+        "AccessKey": body.get('AccessKey') if body else None,
         "headers": {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": config.APP_ORIGIN
@@ -31,31 +31,33 @@ def http_response(statusCode: int, body: any=None):
 
     return response
 
-def is_valid_password(password: str):
+def is_valid_password(password: str) -> bool:
     """Checks the format of the password"""
-    pw_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$'
-    return re.match(password, pw_regex)
+    pw_regex = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[_!@#$%]).{8,24}$'
+    return bool(re.match(pw_regex, password))
 
-def is_valid_user(username: str):
+def is_valid_user(username: str) -> bool:
     """Checks the format of the username"""
-    email_regex = r"/^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/"
-    return re.match(username, email_regex)
+    email_regex = r"([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\"([]!#-[^-~ \t]|(\\[\t -~]))+\")@([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\[[\t -Z^-~]*])"
+    return bool(re.match(email_regex, username))
 
 # Handler methods
 def confirm_email(params: object):
     """Confirm registration email endpoint (GET)"""
     acessKey = params.get('accessKey')
-    username = validate_acessKey(acessKey)
+    username = validate_access_key(acessKey)
     if username:
-        user_table.update_item(Item={
-            "UserName": username,
-            "AccessKey": acessKey,
-            "LastLogin": datetime.now(),
-            "Roles": "Viewer",
-            "Valid": True
-        })
-        return http_response(200, {"accessKey": acessKey, "message": "Email confirmed"})
-    return http_response(403, 'Forbidden')
+        user_table.update_item(
+            Key={"UserName": username},
+            UpdateExpression="SET LastLogin = :last_login, AuthRole = :role, Valid = :valid",
+            ExpressionAttributeValues={
+                ":last_login": True,
+                ":role": "Viewer",
+                ":valid": True
+            }
+        )
+        return http_response(200, {"AccessKey": acessKey, "message": "Email confirmed"})
+    return http_response(403, {"message": 'Forbidden'})
 
 def refresh_access_token(params: object):
     """Refresh the user's access token (GET)"""
@@ -67,35 +69,36 @@ def reset_password(event: object):
     # send reset password link in an email
     if send_reset_password_email(username):
         return http_response(200, { "message": "Password reset email sent" })
-    return http_response(500, 'Server error')
+    return http_response(500, {"message": 'Server error'})
 
 def change_password(event: object):
     """Allow user to change their password (POST)"""
     username = event.get('username')
     password = event.get('password')
     new_password = event.get('new_password')
-    acessKey = event.get('acessKey')
 
     # validate data
     if not is_valid_user(username) or \
        not is_valid_password(password) or \
        not is_valid_password(new_password):
         # send alert, someone is hacking or front-end validation is broken 
-        return http_response(403, 'Forbidden')
+        return http_response(403, {"message": 'Forbidden'})
 
     # validate user
-    db_username = validate_acessKey(acessKey)
-    if db_username and db_username == username:
-        response = user_table.get_item(Key={"username": username})
-        if "Item" in response:
-            pw_hash = response.get('Item', {}).get('Password')
-            if pw_hash != hashlib.sha3_256(password).hexdigest():
-                return http_response(401, "Incorrect Password")
+    response = user_table.get_item(Key={"UserName": username})
+    if "Item" in response:
+        pw_hash = response.get('Item', {}).get('Password')
+        if pw_hash != hashlib.sha3_256(password.encode()).hexdigest():
+            return http_response(401, "Incorrect Password")
 
-            # update password
-            user_table.update_item(Item={"UserName": username, "Password": new_password})
+        # update password
+        user_table.update_item(
+            Key={"UserName": username},
+            UpdateExpression="SET Password = :password",
+            ExpressionAttributeValues={ ":password": new_password }
+        )
 
-    return http_response(200, {"accessKey": acessKey, "message": "Password updated"})
+    return http_response(200, {"UserName": username, "message": "Password updated"})
 
 def register(event: object):
     """Allow the user to register (POST)"""
@@ -104,16 +107,16 @@ def register(event: object):
     # validate / scrub data
     if not is_valid_user(username) or not is_valid_password(password):
         # send alert, someone is hacking or front-end validation is broken 
-        return http_response(403, 'Forbidden')
+        return http_response(403, {"message": 'Forbidden'})
 
     # check for existing records
     response = user_table.get_item(Key={"UserName": username})
     if "Item" in response:
         if username == response.get('Item', {}).get('UserName'):
-            return http_response(409, 'Username taken')
+            return http_response(409, {"message": 'Username taken'})
 
     # hash password
-    pw_hash = hashlib.sha3_256(password).hexdigest()
+    pw_hash = hashlib.sha3_256(password.encode()).hexdigest()
 
     # write to DB
     try:
@@ -121,7 +124,7 @@ def register(event: object):
         send_registration_email(username)
     except Exception as e:
         print(f'Error registering user {username}: {e}')
-        return http_response(500, 'Server error')
+        return http_response(500, {"message": 'Server error'})
 
     # craft response
     return http_response(200, { "message": "Registration success" })
@@ -130,31 +133,35 @@ def login(event: object):
     """Allow the user to login (POST)"""
     username = event.get('username')
     password = event.get('password')
-    acessKey = event.get('acessKey')
+    access_key = event.get('accessKey')
     # validate / scrub data
     if not is_valid_user(username) or not is_valid_password(password):
-        # @todo send alert, someone is hacking or front-end validation is broken 
-        return http_response(403, 'Forbidden')
+        # @todo send alert, someone is hacking or front-end validation is broken
+        return http_response(403, {"message": 'Forbidden'})
 
-    if not acessKey:
-        return http_response(401, 'Token expected')
+    if not access_key:
+        return http_response(401, {"message": 'Token expected'})
 
-    response = user_table.get_item(Key={"username": username})
+    response = user_table.get_item(Key={"UserName": username})
     if "Item" in response:
-        
         pw_hash = response.get('Item', {}).get('Password')
-        if pw_hash != hashlib.sha3_256(password).hexdigest():
-            return http_response(401, "Unauthorized")
-        if acessKey != response.get('Item', {}).get('AccessKey'):
-            # user needs to confirm their email
-            return http_response(401, 'Token invalid')
-    try:
-        user_table.update_item(Item={"UserName": username, "LastLogin": datetime.now()})
-    except Exception as e:
-        logger.warn(f'Error updating user {username}: {e}')
-        return http_response(500, 'Server Error')
+        if pw_hash != hashlib.sha3_256(password.encode()).hexdigest():
+            return http_response(401, {"message": "Unauthorized"})
 
-    return http_response(200, {"accessKey": acessKey, "message": "Login success"})
+    if not validate_access_key(access_key) == username:
+            # user needs to confirm their email
+            return http_response(401, {"message": 'Token invalid'})
+    try:
+        user_table.update_item(
+            Key={"UserName": username},
+            UpdateExpression="SET LastLogin = :last_login",
+            ExpressionAttributeValues={":last_login": str(datetime.utcnow())}
+        )
+    except Exception as e:
+        logger.warning(f'Error updating user {username}: {e}')
+        return http_response(500, {"message": 'Server Error'})
+
+    return http_response(200, {"AccessKey": access_key, "message": "Login success"})
 
 # Handler
 routes = {
@@ -174,9 +181,6 @@ def lambda_handler(event: any, context: any):
     httpMethod = event.get('httpMethod')
     path = event.get('path')
     
-    # @todo get the user's IP
-    ip_address = None
-
     handler = routes.get(httpMethod, {}).get(path)
 
     if httpMethod == 'GET':

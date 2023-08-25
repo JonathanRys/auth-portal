@@ -1,32 +1,40 @@
 import uuid
-from . import config
+import config
 import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from .dynamodb_tables import get_token_table
+from .dynamodb_tables import get_tokens_table
 
-token_table = get_token_table(config.TOKEN_TABLE)
+token_table = get_tokens_table(config.TOKEN_TABLE)
 
 def validate_access_key(access_key: str) -> str:
     """Checks the access key against the DB"""
     response = token_table.get_item(Key={"AccessKey": access_key})
     if "Item" in response:
         username = response.get('Item', {}).get('UserName')
-        token_table.update_item(Item={"AccessKey": access_key, "Valid": True})
+        token_table.update_item(
+            Key={"AccessKey": access_key},
+            UpdateExpression="SET Valid = :valid",
+            ExpressionAttributeValues={":valid": True}
+        )
 
         return username
     return ''
 
 def get_registration_link(username: str) -> str:
     """Gets a registration link for the user"""
-    access_key = uuid.uuid4()
+    access_key = str(uuid.uuid4())
     token_table.put_item(Item={"UserName": username, "AccessKey": access_key, "Valid": False})
     return f'{config.API_URL}/confirm?accessKey={access_key}'
 
 def get_reset_link(username: str) -> str:
     """Gets a reset password link"""
-    access_key = uuid.uuid4()
-    token_table.update_item(Item={"UserName": username, "AccessKey": access_key, "Valid": False})
+    access_key = str(uuid.uuid4())
+    token_table.update_item(
+            Key={"AccessKey": access_key},
+            UpdateExpression="SET Valid = :valid",
+            ExpressionAttributeValues={":valid": False}
+        )
     return f'{config.API_URL}/resetPassword?accessKey={access_key}'
 
 def send_reset_password_email(recipient: str) -> bool:
