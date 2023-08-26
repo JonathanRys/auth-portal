@@ -24,4 +24,6 @@ yarn-error.log*
 
 # api
 config.py
+__pycache__/
+.pytest_cache
 /api/venv/
