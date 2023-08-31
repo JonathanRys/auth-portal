@@ -2,17 +2,37 @@ import re
 import json
 import hashlib
 import logging
-
 from datetime import datetime
 
-from . import config
-from .dynamodb_tables import get_users_table
-from .registration import validate_access_key, send_reset_password_email, send_registration_email
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+import config
+from dynamodb_tables import get_users_table
+from registration import validate_access_key, send_reset_password_email, send_registration_email
+
+origins = [
+    "http://localhost:3000",
+    "http://local.host:3000"
+]
+
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=['GET', 'POST', 'OPTIONS', 'DELETE', 'HEAD']
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
 user_table = get_users_table(config.USER_TABLE)
+
+@app.get('/')
+def home():
+    return {"test": "success"}
 
 # Utilities
 def http_response(statusCode: int, body: any=None):
@@ -42,6 +62,7 @@ def is_valid_user(username: str) -> bool:
     return bool(re.match(email_regex, username))
 
 # Handler methods
+@app.get("/confirm")
 def confirm_email(params: object):
     """Confirm registration email endpoint (GET)"""
     acessKey = params.get('accessKey')
@@ -59,10 +80,12 @@ def confirm_email(params: object):
         return http_response(200, {"AccessKey": acessKey, "message": "Email confirmed"})
     return http_response(403, {"message": 'Forbidden'})
 
+@app.get("/refresh")
 def refresh_access_token(params: object):
     """Refresh the user's access token (GET)"""
     pass
 
+@app.post("/reset_password")
 def reset_password(event: object):
     """Allow user to reset their password (POST)"""
     username = event.get('username')
@@ -71,6 +94,7 @@ def reset_password(event: object):
         return http_response(200, { "message": "Password reset email sent" })
     return http_response(500, {"message": 'Server error'})
 
+@app.post("/change_password")
 def change_password(event: object):
     """Allow user to change their password (POST)"""
     username = event.get('username')
@@ -100,10 +124,18 @@ def change_password(event: object):
 
     return http_response(200, {"UserName": username, "message": "Password updated"})
 
-def register(event: object):
-    """Allow the user to register (POST)"""
-    username = event.get('username')
-    password = event.get('password')
+class NewUser(BaseModel):
+    """Data class for register endpoint"""
+    username: str
+    password: str
+
+@app.post("/register")
+def register(new_user: NewUser):
+    """Allow the user to register via (POST)"""
+    logger.warning(f'Got request: "{new_user}"')
+  
+    username = new_user.username
+    password = new_user.password
     # validate / scrub data
     if not is_valid_user(username) or not is_valid_password(password):
         # send alert, someone is hacking or front-end validation is broken 
@@ -129,11 +161,18 @@ def register(event: object):
     # craft response
     return http_response(200, { "message": "Registration success" })
 
-def login(event: object):
+class ExistingUser(BaseModel):
+    """Data class for register endpoint"""
+    username: str
+    password: str
+    accessKey: str
+
+@app.post("/login")
+def login(user: ExistingUser):
     """Allow the user to login (POST)"""
-    username = event.get('username')
-    password = event.get('password')
-    access_key = event.get('accessKey')
+    username = user.username
+    password = user.password
+    access_key = user.accessKey
     # validate / scrub data
     if not is_valid_user(username) or not is_valid_password(password):
         # @todo send alert, someone is hacking or front-end validation is broken

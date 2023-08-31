@@ -3,12 +3,14 @@ import config
 import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from .dynamodb_tables import get_tokens_table
+from dynamodb_tables import get_tokens_table
 
 token_table = get_tokens_table(config.TOKEN_TABLE)
 
 def validate_access_key(access_key: str) -> str:
     """Checks the access key against the DB"""
+    if not access_key:
+        return ''
     response = token_table.get_item(Key={"AccessKey": access_key})
     if "Item" in response:
         username = response.get('Item', {}).get('UserName')
@@ -23,6 +25,8 @@ def validate_access_key(access_key: str) -> str:
 
 def get_registration_link(username: str) -> str:
     """Gets a registration link for the user"""
+    if not username:
+        return ''
     access_key = str(uuid.uuid4())
     token_table.put_item(Item={"UserName": username, "AccessKey": access_key, "Valid": False})
     return f'{config.API_URL}/confirm?accessKey={access_key}'

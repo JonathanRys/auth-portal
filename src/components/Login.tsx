@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useContext, FormEvent } from 'react';
 import { setCookie } from '../util/cookie';
 import AuthContext from '../context/AuthProvider';
 import axios from '../api/axios';
+import { Navigate } from 'react-router-dom';
 
 const LOGIN_URL = '/login';
 
@@ -15,12 +16,14 @@ const Login = () => {
 
     const [user, setUser] = useState('');
     const [password, setPassword] = useState('');
+    const [accessKey, setAccessKey] = useState('');
+    const [roles, setRoles] = useState('');
     const [errMsg, setErrMsg] = useState('');
     // temp until navigation is set up
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {
-        userRef.current.focus();
+        userRef?.current.focus();
     }, [])
 
     useEffect(() => {
@@ -31,26 +34,30 @@ const Login = () => {
         e.preventDefault();
 
         try {
+            console.log('POSTing to', LOGIN_URL)
             const response = await axios.post(LOGIN_URL, 
-                JSON.stringify({
-                    user, password
-                }), {
-                    headers: { 'Content-Type': 'application/json' },
+                {
+                    "username": user,
+                    "password": password,
+                    "accessKey": accessKey
+                }, {
                     withCredentials: true
                 }
             );
+
+            console.log('DEBUG:', response)
 
             if (response?.status !== 200) {
                 throw new Error(`Request failed with status ${response?.status}`);
             }
 
-            const accessToken = response?.data?.accessToken;
-            const roles = response?.data?.roles;
+            setAccessKey(response?.data?.accessToken);
+            setRoles(response?.data?.roles);
 
-            setAuth({ user, password, roles, accessToken })
+            setAuth({ user, password, roles, accessKey })
             setCookie('user', user);
             setCookie('roles', roles);
-            setCookie('accessToken', accessToken);
+            setCookie('accessToken', accessKey);
 
             setUser('');
             setPassword('');
@@ -66,14 +73,14 @@ const Login = () => {
             } else {
                 setErrMsg('Login Failed.')
             }
-            errRef.current.focus();        
+            errRef?.current.focus();        
         }
     }
 
     return (
         <>
             {success ? (
-                <div>You have access to our content!</div>
+                <Navigate to="/gpt" />
             ) :(
                 <section>
                     <p

@@ -1,5 +1,25 @@
+@-webkit-keyframes header-gradient {
+    0%{text-shadow: 1px 1px 2px #777, 0 0 1em #fff, 0 0 0.2em #fff;}
+    50%{text-shadow: 0.5px 0.5px 1px #777, 0 0 0.25em #fff, 0 0 0.05em #fff;}
+    0%{text-shadow: 1px 1px 2px #777, 0 0 1em #fff, 0 0 0.2em #fff;}
+}
+@-moz-keyframes header-gradient {
+  0%{text-shadow: 1px 1px 2px #777, 0 0 1em #fff, 0 0 0.2em #fff;}
+  50%{text-shadow: 0.5px 0.5px 1px #777, 0 0 0.25em #fff, 0 0 0.05em #fff;}
+  0%{text-shadow: 1px 1px 2px #777, 0 0 1em #fff, 0 0 0.2em #fff;}
+}
+@keyframes header-gradient { 
+  0%{text-shadow: 1px 1px 2px #777, 0 0 1em #fff, 0 0 0.2em #fff;}
+  50%{text-shadow: 0.5px 0.5px 1px #777, 0 0 0.25em #fff, 0 0 0.05em #fff;}
+  0%{text-shadow: 1px 1px 2px #777, 0 0 1em #fff, 0 0 0.2em #fff;}
+}
+
 header {
-  background: -webkit-linear-gradient(45deg, darkslategrey, lightgray);
+  -webkit-animation: header-gradient 24s ease infinite;
+  -moz-animation: header-gradient 24s ease infinite;
+  animation: header-gradient 24s ease infinite;
+  
+  background: -webkit-linear-gradient(135deg, darkslategrey, lightgray);
   -webkit-backgroud-clip: text;
   -webkit-text-fill-color: transparent;
   display: flex;
@@ -88,6 +108,7 @@ button:disabled {
 
 .error {
   background-color: lightpink;
+  border-radius: 0.5rem;
   color: firebrick;
   font-weight: bold;
   padding: 0.5rem;

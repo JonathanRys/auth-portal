@@ -62,14 +62,16 @@ const Registration = () => {
             return;
         default:
             try{
+                console.log('POSTing to', axios.getUri() + REGISTER_URL)
                 const response = await axios.post(REGISTER_URL, 
-                    JSON.stringify({
-                        user, password
-                    }), {
-                        headers: { 'Content-Type': 'application/json' },
-                        withCredentials: true
+                    {
+                        "username": user,
+                        "password": password
+                    }, {
+                        withCredentials: true // send cookies
                     }
                 );
+                console.log('DEBUG:', response)
 
                 if (response?.status !== 200) {
                     throw new Error(`Request failed with status ${response?.status}`);
@@ -91,6 +93,7 @@ const Registration = () => {
                 return;
                     
             } catch (e) {
+                console.log('Request error', e)
                 if (!e?.response) {
                     setErrMsg('No response from server.')
                 } else if (e.response?.status === 409) {
@@ -111,7 +114,8 @@ const Registration = () => {
                 {success ? (
                     <section>
                         <p>
-                            <a href='/gpt'>Enter</a>
+                            Please check your email for a confirmation link.<br/>
+                            or <a href='/gpt'>Secretly Enter</a>
                         </p>
                     </section>
                 ) : (<section>
@@ -164,7 +168,7 @@ const Registration = () => {
 
                         <label htmlFor="confirm-password">
                             Confirm Password:
-                            <span className={matchValid && pwMatch ? 'valid' : 'hidden'}><FontAwesomeIcon icon={faCheck} /></span>
+                            <span className={matchValid && pwMatch && passwordValid ? 'valid' : 'hidden'}><FontAwesomeIcon icon={faCheck} /></span>
                             <span className={matchValid || !pwMatch ? 'hidden' : 'invalid'}><FontAwesomeIcon icon={faTimes} /></span>
                         </label>
                         <input

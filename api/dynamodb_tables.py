@@ -1,3 +1,7 @@
+"""
+Functions to get or create DynamoDB tables
+"""
+
 import boto3
 
 # connect to DB
