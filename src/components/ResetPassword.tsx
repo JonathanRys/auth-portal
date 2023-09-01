@@ -4,6 +4,8 @@ import { setCookie } from '../util/cookie';
 import AuthContext from '../context/AuthProvider';
 import axios from '../api/axios';
 
+import { Navigate } from 'react-router-dom';
+
 const RESET_PASSWORD_URL = '/reset_password';
 
 const ResetPassword = () => {
@@ -45,13 +47,13 @@ const ResetPassword = () => {
                 throw new Error(`Request failed with status ${response?.status}`);
             }
 
-            const accessToken = response?.data?.accessToken;
+            const apiKey = response?.data?.apiKey;
             const roles = response?.data?.roles;
 
-            setAuth({ user, password, roles, accessToken })
+            setAuth({ user, password, roles, apiKey })
             setCookie('user', user);
             setCookie('roles', roles);
-            setCookie('accessToken', accessToken);
+            setCookie('apiKey', apiKey);
 
             setUser('');
             setPassword('');
@@ -74,7 +76,7 @@ const ResetPassword = () => {
     return (
         <>
             {success ? (
-                <div>You have access to our content!</div>
+                <Navigate to="/gpt" />
             ) :(
                 <section>
                     <p

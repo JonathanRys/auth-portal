@@ -16,8 +16,9 @@ const Login = () => {
 
     const [user, setUser] = useState('');
     const [password, setPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
     const [apiKey, setApiKey] = useState('');
-    const [role, setRole] = useState('');
+    const [roles, setRoles] = useState('');
     const [errMsg, setErrMsg] = useState('');
     // temp until navigation is set up
     const [success, setSuccess] = useState(false);
@@ -28,7 +29,7 @@ const Login = () => {
 
     useEffect(() => {
         setErrMsg('');
-    }, [user, password])
+    }, [user, password, newPassword])
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -39,6 +40,7 @@ const Login = () => {
                 {
                     "username": user,
                     "password": password,
+                    "new_password": newPassword,
                     "apiKey": apiKey
                 }, {
                     withCredentials: true
@@ -52,14 +54,12 @@ const Login = () => {
             }
 
             setApiKey(response?.data?.apiKey);
-            setRole(response?.data?.role);
+            setRoles(response?.data?.roles);
 
-            setAuth({ user, password, role, apiKey })
+            setAuth({ user, password, roles, apiKey })
             setCookie('user', user);
-            setCookie('role', role);
-            if (apiKey) {
-                setCookie('apiKey', apiKey);
-            }
+            setCookie('roles', roles);
+            setCookie('apiKey', apiKey);
 
             setUser('');
             setPassword('');
@@ -110,11 +110,18 @@ const Login = () => {
                             value={password}
                             required
                         />
-                        <button disabled={!user || !password ? true : false}>Sign In</button>
+                        <label htmlFor="new_password">New Password:</label>
+                        <input 
+                            type="password"
+                            id="new_password"
+                            onChange={e => setNewPassword(e.target.value)}
+                            value={newPassword}
+                            required
+                        />
+                        <button disabled={!user || !password  || !newPassword? true : false}>Update password</button>
                         <p>
-                            Need an account?<br/>
                             <span className="inline">
-                                <a href="/register">Sign Up</a>
+                                <a href="/gpt">Cancel</a>
                             </span>
                         </p>
                     </form>

@@ -77,13 +77,13 @@ const Registration = () => {
                     throw new Error(`Request failed with status ${response?.status}`);
                 }
 
-                const accessToken = response?.data?.accessToken;
-                const roles = response?.data?.roles;
+                const apiKey = response?.data?.apiKey;
+                const role = response?.data?.role;
 
-                setAuth({ user, password, roles, accessToken });
+                setAuth({ user, password, role, apiKey });
                 setCookie('user', user);
-                setCookie('roles', roles);
-                setCookie('accessToken', accessToken);
+                setCookie('role', role);
+                setCookie('apiKey', undefined); // Set this when email is confirmed
                 
                 setSuccess(true);
                 // clear inputs
@@ -115,7 +115,7 @@ const Registration = () => {
                     <section>
                         <p>
                             Please check your email for a confirmation link.<br/>
-                            or <a href='/gpt'>Secretly Enter</a>
+                            or <a href='/gpt'>Secretly Enter 🤫</a>
                         </p>
                     </section>
                 ) : (<section>
