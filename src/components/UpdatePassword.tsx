@@ -3,11 +3,12 @@ import { useState, useEffect, useRef, useContext, FormEvent } from 'react';
 import { setCookie } from '../util/cookie';
 import AuthContext from '../context/AuthProvider';
 import axios from '../api/axios';
+
 import { Navigate } from 'react-router-dom';
 
-const LOGIN_URL = '/login';
+const RESET_PASSWORD_URL = '/reset_password';
 
-const Login = () => {
+const UpdatePassword = () => {
     // @ts-ignore
     const { setAuth } = useContext(AuthContext);
 
@@ -17,49 +18,42 @@ const Login = () => {
     const [user, setUser] = useState('');
     const [password, setPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
-    const [apiKey, setApiKey] = useState('');
-    const [roles, setRoles] = useState('');
     const [errMsg, setErrMsg] = useState('');
     // temp until navigation is set up
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {
-        userRef?.current.focus();
+        userRef.current.focus();
     }, [])
 
     useEffect(() => {
         setErrMsg('');
-    }, [user, password, newPassword])
+    }, [user, password])
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
 
         try {
-            console.log('POSTing to', LOGIN_URL)
-            const response = await axios.post(LOGIN_URL, 
-                {
-                    "username": user,
-                    "password": password,
-                    "new_password": newPassword,
-                    "apiKey": apiKey
-                }, {
+            const response = await axios.post(RESET_PASSWORD_URL, 
+                JSON.stringify({
+                    user, password
+                }), {
+                    headers: { 'Content-Type': 'application/json' },
                     withCredentials: true
                 }
             );
-
-            console.log('DEBUG:', response)
 
             if (response?.status !== 200) {
                 throw new Error(`Request failed with status ${response?.status}`);
             }
 
-            setApiKey(response?.data?.apiKey);
-            setRoles(response?.data?.roles);
+            const authKey = response?.data?.authKey;
+            const roles = response?.data?.roles;
 
-            setAuth({ user, password, roles, apiKey })
+            setAuth({ user, password, roles, authKey })
             setCookie('user', user);
             setCookie('roles', roles);
-            setCookie('apiKey', apiKey);
+            setCookie('authKey', authKey);
 
             setUser('');
             setPassword('');
@@ -73,9 +67,9 @@ const Login = () => {
             } else if (e.response?.status === 401) {
                 setErrMsg('Unauthorized.');
             } else {
-                setErrMsg('Login Failed.')
+                setErrMsg('Password reset failed.')
             }
-            errRef?.current.focus();        
+            errRef.current.focus();
         }
     }
 
@@ -91,7 +85,7 @@ const Login = () => {
                         aria-live="assertive">
                         {errMsg}
                     </p>
-                    <h1>Sign in</h1>
+                    <h1>Change password</h1>
                     <form onSubmit={handleSubmit}>
                         <label htmlFor="username">Email:</label>
                         <input 
@@ -110,18 +104,19 @@ const Login = () => {
                             value={password}
                             required
                         />
-                        <label htmlFor="new_password">New Password:</label>
+                        <label htmlFor="new-password">New password:</label>
                         <input 
                             type="password"
-                            id="new_password"
+                            id="new-password"
                             onChange={e => setNewPassword(e.target.value)}
-                            value={newPassword}
+                            value={password}
                             required
                         />
-                        <button disabled={!user || !password  || !newPassword? true : false}>Update password</button>
+                        <button disabled={!user || !password || !newPassword ? true : false}>Update Password</button>
                         <p>
+                            Happy with your password?<br />
                             <span className="inline">
-                                <a href="/gpt">Cancel</a>
+                                <a href="/login">Sign In</a>
                             </span>
                         </p>
                     </form>
@@ -131,4 +126,4 @@ const Login = () => {
     )
 }
 
-export default Login
+export default UpdatePassword

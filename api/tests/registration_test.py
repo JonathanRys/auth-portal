@@ -21,7 +21,7 @@ def test_validate_access_key():
     table.delete_item(Key={"AccessKey": "abc123"})
 
 def test_get_registration_link():
-    expected_result = f'{config.API_URL}/confirm?accessKey='
+    expected_result = f'{config.API_URL}/confirm_email?accessKey='
     assert get_registration_link("testuser@gmail.com")[:len(expected_result)] == expected_result
 
 def test_get_reset_link():

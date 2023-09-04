@@ -16,7 +16,7 @@ const Login = () => {
 
     const [user, setUser] = useState('');
     const [password, setPassword] = useState('');
-    const [apiKey, setApiKey] = useState('');
+    const [authKey, setAuthKey] = useState('');
     const [role, setRole] = useState('');
     const [errMsg, setErrMsg] = useState('');
     // temp until navigation is set up
@@ -35,30 +35,34 @@ const Login = () => {
 
         try {
             console.log('POSTing to', LOGIN_URL)
-            const response = await axios.post(LOGIN_URL, 
-                {
-                    "username": user,
-                    "password": password,
-                    "apiKey": apiKey
-                }, {
-                    withCredentials: true
+            try {
+                const response = await axios.post(LOGIN_URL, 
+                    {
+                        "username": user,
+                        "password": password,
+                        "authKey": authKey
+                    }, {
+                        withCredentials: true
+                    }
+                );
+
+                console.log('DEBUG:', response)
+
+                if (response?.status !== 200) {
+                    throw new Error(`Request failed with status ${response?.status}`);
                 }
-            );
 
-            console.log('DEBUG:', response)
-
-            if (response?.status !== 200) {
-                throw new Error(`Request failed with status ${response?.status}`);
+                setAuthKey(response?.data?.authKey);
+                setRole(response?.data?.role);
+            } catch (e) {
+                console.log('error', e)
             }
 
-            setApiKey(response?.data?.apiKey);
-            setRole(response?.data?.role);
-
-            setAuth({ user, password, role, apiKey })
+            setAuth({ user, password, role, authKey })
             setCookie('user', user);
             setCookie('role', role);
-            if (apiKey) {
-                setCookie('apiKey', apiKey);
+            if (authKey) {
+                setCookie('authKey', authKey);
             }
 
             setUser('');
@@ -73,7 +77,7 @@ const Login = () => {
             } else if (e.response?.status === 401) {
                 setErrMsg('Unauthorized.');
             } else {
-                setErrMsg('Login Failed.')
+                setErrMsg('Login failed.')
             }
             errRef?.current.focus();        
         }
@@ -111,12 +115,19 @@ const Login = () => {
                             required
                         />
                         <button disabled={!user || !password ? true : false}>Sign In</button>
-                        <p>
-                            Need an account?<br/>
-                            <span className="inline">
-                                <a href="/register">Sign Up</a>
-                            </span>
-                        </p>
+                        <div className="login-links">
+                            <p>
+                                Need an account?<br/>
+                                <span className="inline">
+                                    <a href="/register">Sign Up</a>
+                                </span>
+                            </p>
+                            <p>
+                                <span className="inline">
+                                    <a href="/reset_password">Forgot password?</a>
+                                </span>
+                            </p>
+                        </div>
                     </form>
                 </section>
             )}

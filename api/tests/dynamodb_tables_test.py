@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from ..dynamodb_tables import get_users_table, get_tokens_table
+from ..dynamodb_tables import get_users_table, get_tokens_table, get_sessions_table
 from ..dynamodb_tables import get_queries_table, get_flagged_docs_table
 
 def test_get_users_table():
@@ -13,7 +13,7 @@ def test_get_users_table():
         "RateLimit": 1000,
         "LastLogin": login_time,
         "AuthRole": "viewer",
-        "ApiKey": "abc12345",
+        "AuthKey": "abc12345",
         "Active": True
     })
 
@@ -25,7 +25,7 @@ def test_get_users_table():
         "RateLimit": Decimal('1000'),
         "LastLogin": [login_time[0]],
         "AuthRole": "viewer",
-        "ApiKey": "abc12345",
+        "AuthKey": "abc12345",
         "Active": True
     }
 
@@ -34,8 +34,8 @@ def test_get_users_table():
 def test_get_tokens_table():
     table = get_tokens_table("Tokens")
     table.put_item(Item={
-        "UserName": "user@test.com",
         "AccessKey": "abc123",
+        "UserName": "user@test.com",
         "Valid": True
     })
 
@@ -48,6 +48,24 @@ def test_get_tokens_table():
     }
 
     table.delete_item(Key={"AccessKey": "abc123"})
+
+def test_get_sessions_table():
+    table = get_sessions_table("Sessions")
+    table.put_item(Item={
+        "UserName": "user@test.com",
+        "SessionKey": "abc123",
+        "Active": True
+    })
+
+    result = table.get_item(Key={"SessionKey": "abc123"})
+
+    assert result['Item'] == {
+        "UserName": "user@test.com",
+        "SessionKey": "abc123",
+        "Active": True
+    }
+
+    table.delete_item(Key={"SessionKey": "abc123"})
 
 def test_get_queries_table():
     table = get_queries_table("Queries")

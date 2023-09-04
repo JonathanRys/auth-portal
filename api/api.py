@@ -5,7 +5,7 @@ import hashlib
 import logging
 from datetime import datetime
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -31,6 +31,13 @@ logger = logging.getLogger()
 
 user_table = get_users_table(config.USER_TABLE)
 
+class LogedInUser(BaseModel):
+    """Return type for User"""
+    username: str
+    role: str
+    authKey: str
+    sessionKey: str
+
 @app.get('/')
 def home():
     return {"test": "success"}
@@ -38,9 +45,12 @@ def home():
 # Utilities
 def http_response(statusCode: int, body: any=None):
     """Generates a standard HTTP response"""
+    if statusCode >= 400:
+        raise HTTPException(status_code=statusCode, detail=body.get('message'))
+
     response = {
         "statusCode": statusCode,
-        "apiKey": body.get('apiKey') if body else None,
+        "authKey": body.get('authKey') if body else None,
         "headers": {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": config.APP_ORIGIN
@@ -62,35 +72,39 @@ def is_valid_user(username: str) -> bool:
     email_regex = r"([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\"([]!#-[^-~ \t]|(\\[\t -~]))+\")@([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\[[\t -Z^-~]*])"
     return bool(re.match(email_regex, username))
 
-def validate_api_key(username: str, api_key: str):
+def validate_auth_key(username: str, auth_key: str):
     """Verify the user's auth key"""
     response = user_table.get_item(Key={"UserName": username})
-    user_api_key = response.get('Item', {}).get('ApiKey')
-    return user_api_key == api_key
+    db_auth_key = response.get('Item', {}).get('AuthKey')
+    if auth_key:
+        if db_auth_key == auth_key:
+            return auth_key
+        return None
+    return db_auth_key
 
 class EmailConfirmation(BaseModel):
     """Class for email confirmation endpoint"""
     accessKey: str
 
 # Handler methods
-@app.get("/confirm")
+@app.get("/confirm_email", response_model=LogedInUser)
 def confirm_email(user: EmailConfirmation):
     """Confirm registration email endpoint (GET)"""
     accessKey = user.accessKey
     username = validate_access_key(accessKey)
     if username:
-        api_key = str(uuid.uuid4())
+        auth_key = str(uuid.uuid4())
         user_table.update_item(
             Key={"UserName": username},
-            UpdateExpression="SET LastLogin = :last_login, AuthRole = :role, ApiKey = :api_key, Valid = :valid",
+            UpdateExpression="SET LastLogin = :last_login, AuthRole = :role, AuthKey = :auth_key, Valid = :valid",
             ExpressionAttributeValues={
-                ":last_login": True,
+                ":last_login": str(datetime.utcnow()),
                 ":role": "Viewer",
-                ":api_key": api_key,
+                ":auth_key": auth_key,
                 ":valid": True
             }
         )
-        return http_response(200, {"ApiKey": api_key, "message": "Email confirmed"})
+        return http_response(200, {"authKey": auth_key, "message": "Email confirmed"})
     return http_response(403, {"message": 'Forbidden'})
 
 class ResetPassword(BaseModel):
@@ -177,38 +191,37 @@ def register(new_user: NewUser):
         return http_response(500, {"message": 'Server error'})
 
     # craft response
-    return http_response(201, { "message": "Registration success" })
+    return http_response(201, {"message": "Registration success"})
 
 class ExistingUser(BaseModel):
     """Data class for register endpoint"""
     username: str
     password: str
-    apiKey: str
+    authKey: str
 
-@app.post("/login")
+@app.post("/login", response_model=LogedInUser)
 def login(user: ExistingUser):
     """Allow the user to login (POST)"""
     username = user.username
     password = user.password
-    api_key = user.apiKey
+    auth_key = user.authKey
     # validate / scrub data
     if not is_valid_user(username) or not is_valid_password(password):
         logger.error(f'User {username} attempted to bypass frontend security using password {password}.')
         return http_response(403, {"message": 'Forbidden'})
 
-    if not api_key:
-        # 
-        return http_response(401, {"message": 'Please validate '})
+    if not validate_auth_key(username, auth_key):
+        # The user hasn't validated their email yet
+        return http_response(401, {"message": 'Please validate your email address.'})
 
     response = user_table.get_item(Key={"UserName": username})
     if "Item" in response:
         pw_hash = response.get('Item', {}).get('Password')
         if pw_hash != hashlib.sha3_256(password.encode()).hexdigest():
-            return http_response(401, {"message": "Unauthorized"})
+            # log pw attempts and lock account for 10 min if failed more than 5 times
+            logger.warning(f'Faild password attempt by {username}')
+            return http_response(401, {"message": "Invalid username or password attempt."})
 
-    if not validate_api_key(username, api_key):
-        # user probably needs to confirm their email
-        return http_response(401, {"message": 'Token invalid'})
     try:
         user_table.update_item(
             Key={"UserName": username},
@@ -220,11 +233,14 @@ def login(user: ExistingUser):
         return http_response(500, {"message": 'Server Error'})
     
     payload = {
-        "user": username,
+        "username": username,
         "role": response.get('Item', {}).get('AuthRole'),
-        "apiKey": response.get('Item', {}).get('ApiKey'),
+        "authKey": response.get('Item', {}).get('AuthKey'),
         "message": "Login success"
     }
+
+    # connect to session table
+    payload["sessionKey"] = response.get('Item', {}).get('SessionKey'),
 
     return http_response(200, payload)
 
@@ -232,30 +248,47 @@ def login(user: ExistingUser):
 def logout(user: ExistingUser):
     """Allow the user to logout (POST)"""
     username = user.username
-    api_key = user.api_key
+    if validate_auth_key(username):
+        # clear cookies
+        pass
+
+
 
 # Handler
 routes = {
     "GET": {
-        "/refresh": refresh_access_token,
-        "/confirm": confirm_email
+        "/confirm_email": confirm_email
     },
     "POST": {
         "/login": login,
         "/register": register,
-        "/resetPassword": reset_password,
-        "/changePassword": change_password
+        "/reset_password": reset_password,
+        "/change_password": change_password
     }
+}
+
+data_types = {
+    "/confirm_email": EmailConfirmation,
+    "/login": ExistingUser,
+    "/register": NewUser,
+    "/reset_password": ResetPassword,
+    "/change_password": UpdatePassword
 }
 
 def lambda_handler(event: any, context: any):
     httpMethod = event.get('httpMethod')
     path = event.get('path')
-    
+    logger.error('event:', event)
+    logger.error(f'method: {httpMethod}')
+    logger.error(f'path: {path}')
+
     handler = routes.get(httpMethod, {}).get(path)
+    data_class = data_types[path]
 
     if httpMethod == 'GET':
-        qs_params = event['queryStringParameters']
-        return handler(qs_params)
+        qs_params = event.get('queryStringParameters')
+        logger.error(f'event: {event}')
+        logger.error(f'qs: {qs_params}')
+        return handler(data_class(**qs_params))
     elif httpMethod == 'POST':
-        return handler(event)
+        return handler(data_class(event))

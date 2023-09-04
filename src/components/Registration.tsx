@@ -77,13 +77,13 @@ const Registration = () => {
                     throw new Error(`Request failed with status ${response?.status}`);
                 }
 
-                const apiKey = response?.data?.apiKey;
+                const authKey = response?.data?.authKey;
                 const role = response?.data?.role;
 
-                setAuth({ user, password, role, apiKey });
+                setAuth({ user, password, role, authKey });
                 setCookie('user', user);
                 setCookie('role', role);
-                setCookie('apiKey', undefined); // Set this when email is confirmed
+                setCookie('authKey', undefined); // Set this when email is confirmed
                 
                 setSuccess(true);
                 // clear inputs
@@ -101,7 +101,7 @@ const Registration = () => {
                 } else if (e.response?.status >= 500) {
                     setErrMsg('Server error.')
                 } else {
-                    setErrMsg('Registration Failed.')
+                    setErrMsg('Registration failed.')
                 }
                 errRef.current.focus();
                 return;
@@ -113,10 +113,7 @@ const Registration = () => {
             <>
                 {success ? (
                     <section>
-                        <p>
-                            Please check your email for a confirmation link.<br/>
-                            or <a href='/gpt'>Secretly Enter 🤫</a>
-                        </p>
+                        <p>Please check your email for a confirmation link.</p>
                     </section>
                 ) : (<section>
                     <p ref={errRef} className={errMsg ? 'error' : 'aria-hidden'} aria-live="assertive">{errMsg}</p>

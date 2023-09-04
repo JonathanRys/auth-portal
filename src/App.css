@@ -129,6 +129,12 @@ button:disabled {
   margin-right: 0.25rem;
 }
 
+.login-links {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
 @media screen and (min-width: 600px) {
   section {
     max-width: 420px;

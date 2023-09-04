@@ -59,6 +59,32 @@ def get_tokens_table(tokens_table_name: str = "Tokens") -> dynamodb.Table:
 
     return dynamodb.Table(tokens_table_name)
 
+def get_sessions_table(sessions_table_name: str = "Sessions") -> dynamodb.Table:
+    """Creates the Token table if it doesn't exist and returns the client"""
+    if sessions_table_name not in [table.name for table in dynamodb.tables.all()]:
+        client = boto3.client('dynamodb')
+        client.create_table(
+            TableName=sessions_table_name,
+            ProvisionedThroughput={
+                "ReadCapacityUnits": 5,
+                "WriteCapacityUnits": 5
+            },
+            KeySchema=[
+                {
+                    "AttributeName": "SessionKey",
+                    "KeyType": "HASH"
+                }
+            ],
+            AttributeDefinitions=[
+                {
+                    "AttributeName": "SessionKey",
+                    "AttributeType": "S"
+                }
+            ],
+        )
+
+    return dynamodb.Table(sessions_table_name)
+
 def get_queries_table(queries_table_name: str = "Queries") -> dynamodb.Table:
     """Creates the Queries table if it doesn't exist and returns the client"""
     if queries_table_name not in [table.name for table in dynamodb.tables.all()]:
