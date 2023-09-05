@@ -3,16 +3,17 @@ Functions to get or create DynamoDB tables
 """
 
 import boto3
+import config
 
 # connect to DB
 dynamodb = boto3.resource('dynamodb')
 
-def get_users_table(users_table_name: str = "Users") -> dynamodb.Table:
+def get_users_table(table_name: str = config.USERS_TABLE) -> dynamodb.Table:
     """Creates the User table if it doesn't exist and returns the client"""
-    if users_table_name not in [table.name for table in dynamodb.tables.all()]:
+    if table_name not in [table.name for table in dynamodb.tables.all()]:
         client = boto3.client('dynamodb')
         client.create_table(
-            TableName=users_table_name,
+            TableName=table_name,
             ProvisionedThroughput={
                 "ReadCapacityUnits": 5,
                 "WriteCapacityUnits": 5
@@ -31,14 +32,14 @@ def get_users_table(users_table_name: str = "Users") -> dynamodb.Table:
             ],
         )
 
-    return dynamodb.Table(users_table_name)
+    return dynamodb.Table(table_name)
 
-def get_tokens_table(tokens_table_name: str = "Tokens") -> dynamodb.Table:
+def get_tokens_table(table_name: str = config.TOKENS_TABLE) -> dynamodb.Table:
     """Creates the Token table if it doesn't exist and returns the client"""
-    if tokens_table_name not in [table.name for table in dynamodb.tables.all()]:
+    if table_name not in [table.name for table in dynamodb.tables.all()]:
         client = boto3.client('dynamodb')
         client.create_table(
-            TableName=tokens_table_name,
+            TableName=table_name,
             ProvisionedThroughput={
                 "ReadCapacityUnits": 5,
                 "WriteCapacityUnits": 5
@@ -57,14 +58,14 @@ def get_tokens_table(tokens_table_name: str = "Tokens") -> dynamodb.Table:
             ],
         )
 
-    return dynamodb.Table(tokens_table_name)
+    return dynamodb.Table(table_name)
 
-def get_sessions_table(sessions_table_name: str = "Sessions") -> dynamodb.Table:
+def get_sessions_table(table_name: str = config.SESSIONS_TABLE) -> dynamodb.Table:
     """Creates the Token table if it doesn't exist and returns the client"""
-    if sessions_table_name not in [table.name for table in dynamodb.tables.all()]:
+    if table_name not in [table.name for table in dynamodb.tables.all()]:
         client = boto3.client('dynamodb')
         client.create_table(
-            TableName=sessions_table_name,
+            TableName=table_name,
             ProvisionedThroughput={
                 "ReadCapacityUnits": 5,
                 "WriteCapacityUnits": 5
@@ -83,14 +84,14 @@ def get_sessions_table(sessions_table_name: str = "Sessions") -> dynamodb.Table:
             ],
         )
 
-    return dynamodb.Table(sessions_table_name)
+    return dynamodb.Table(table_name)
 
-def get_queries_table(queries_table_name: str = "Queries") -> dynamodb.Table:
+def get_queries_table(table_name: str = config.QUERIES_TABLE) -> dynamodb.Table:
     """Creates the Queries table if it doesn't exist and returns the client"""
-    if queries_table_name not in [table.name for table in dynamodb.tables.all()]:
+    if table_name not in [table.name for table in dynamodb.tables.all()]:
         client = boto3.client('dynamodb')
         client.create_table(
-            TableName=queries_table_name,
+            TableName=table_name,
             ProvisionedThroughput={
                 "ReadCapacityUnits": 5,
                 "WriteCapacityUnits": 5
@@ -109,14 +110,14 @@ def get_queries_table(queries_table_name: str = "Queries") -> dynamodb.Table:
             ],
         )
 
-    return dynamodb.Table(queries_table_name)
+    return dynamodb.Table(table_name)
 
-def get_flagged_docs_table(flagged_docs_table_name: str = "Flagged") -> dynamodb.Table:
+def get_flagged_docs_table(table_name: str = config.FLAGGED_DOCS_TABLE) -> dynamodb.Table:
     """Creates the Flagged table if it doesn't exist and returns the client"""
-    if flagged_docs_table_name not in [table.name for table in dynamodb.tables.all()]:
+    if table_name not in [table.name for table in dynamodb.tables.all()]:
         client = boto3.client('dynamodb')
         client.create_table(
-            TableName=flagged_docs_table_name,
+            TableName=table_name,
             ProvisionedThroughput={
                 "ReadCapacityUnits": 5,
                 "WriteCapacityUnits": 5
@@ -135,4 +136,4 @@ def get_flagged_docs_table(flagged_docs_table_name: str = "Flagged") -> dynamodb
             ],
         )
 
-    return dynamodb.Table(flagged_docs_table_name)
+    return dynamodb.Table(table_name)

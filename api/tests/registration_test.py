@@ -25,7 +25,7 @@ def test_get_registration_link():
     assert get_registration_link("testuser@gmail.com")[:len(expected_result)] == expected_result
 
 def test_get_reset_link():
-    expected_result = f'{config.API_URL}/resetPassword?accessKey='
+    expected_result = f'{config.API_URL}/reset_password?accessKey='
     assert get_reset_link("testuser@gmail.com")[:len(expected_result)] == expected_result
 
 def test_send_reset_password_email(mocker):

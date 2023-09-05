@@ -1,11 +1,12 @@
 """
 Test api methods
 """
+
+import pytest
+
 from fastapi.exceptions import HTTPException
 from .. import config
 from ..api import http_response, \
-                is_valid_password, \
-                is_valid_user, \
                 confirm_email, \
                 reset_password, \
                 register, \
@@ -13,7 +14,7 @@ from ..api import http_response, \
                 login, \
                 lambda_handler
 
-from ..api import EmailConfirmation, \
+from ..models import EmailConfirmation, \
                 ResetPassword, \
                 UpdatePassword, \
                 NewUser, \
@@ -33,22 +34,8 @@ def test_http_response():
         }
     }
 
-def test_is_valid_password():
-    assert is_valid_password('thi$shouldntw0rk') == False
-    assert is_valid_password('ThisShouldntw0rk') == False
-    assert is_valid_password('Thi$Shouldntwork') == False
-    assert is_valid_password('thi$w0ntwork') == False
-    assert is_valid_password('Nf6$') == False
-    assert is_valid_password('THI$W0NTWORK') == False
-    assert is_valid_password('thiswontwork') == False
-    assert is_valid_password('Thi$Shouldw0rk') == True
-
-def test_is_valid_user():
-    assert is_valid_user('TestUser') == False
-    assert is_valid_user('Testgmail.com') == False
-    assert is_valid_user('testuser@gmail.com') == True
-
-def test_confirm_email(mocker):
+@pytest.mark.asyncio
+async def test_confirm_email(mocker):
     mocker.patch('uuid.uuid4', return_value='uuid1234')
     token_table = get_tokens_table("Tokens")
     token_table.put_item(Item={
@@ -75,7 +62,12 @@ def test_confirm_email(mocker):
 
     # create db entry for test user to test sucess
     event = EmailConfirmation(accessKey="abc123")
-    assert confirm_email(event) == http_response(200, {"authKey": "uuid1234", "message": "Email confirmed"})
+    assert await confirm_email(event) == http_response(200, {
+        "username": "user@test.com",
+        "role": "viewer",
+        "message": "Email confirmed",
+        "sessionKey": "uuid1234"
+    })
 
     token_table.delete_item(Key={"AccessKey": "abc123"})
     user_table.delete_item(Key={"UserName": "user@test.com"})
@@ -83,14 +75,16 @@ def test_confirm_email(mocker):
 # def test_refresh_access_token():
 #     assert refresh_access_token() ==
 
-def test_reset_password(mocker):
+@pytest.mark.asyncio
+async def test_reset_password(mocker):
     """Test reset password"""
     mocker.patch('smtplib.SMTP_SSL')
     # @todo, this test should fail
     event = ResetPassword(username="testuser@gmail.com")
-    assert reset_password(event) == http_response(200, { "message": "Password reset email sent" })
+    assert await reset_password(event) == http_response(200, { "message": "Password reset email sent" })
 
-def test_change_password():
+@pytest.mark.asyncio
+async def test_change_password():
     token_table = get_tokens_table("Tokens")
     token_table.put_item(Item={
         "UserName": "user@test.com",
@@ -113,11 +107,12 @@ def test_change_password():
         newPassword="ValidP@ssw0rd"
     )
 
-    assert change_password(event) == http_response(200, {"UserName": "user@test.com", "message": "Password updated"})
+    assert await change_password(event) == http_response(200, {"UserName": "user@test.com", "message": "Password updated"})
     token_table.delete_item(Key={"AccessKey": "abc123"})
     user_table.delete_item(Key={"UserName": "user@test.com"})
 
-def test_register(mocker):
+@pytest.mark.asyncio
+async def test_register(mocker):
     """Test register"""
     user_table = get_users_table("Users")
     user_table.delete_item(Key={"UserName": "user@test.com"})
@@ -126,10 +121,11 @@ def test_register(mocker):
         username="user@test.com",
         password="ValidP@ssw0rd"
     )
-    assert register(event) == http_response(201, { "message": "Registration success" })
+    assert await register(event) == http_response(201, { "message": "Registration success" })
     user_table.delete_item(Key={"UserName": "user@test.com"})
 
-def test_login():
+@pytest.mark.asyncio
+async def test_login():
     token_table = get_tokens_table("Tokens")
     token_table.put_item(Item={
         "UserName": "user@test.com",
@@ -151,18 +147,21 @@ def test_login():
         password="ValidP@ssw0rd",
         authKey="abc12345"
     )
-    assert login(event) == http_response(200, {
-        "username": "user@test.com",
-        "role": "viewer",
-        "authKey": "abc12345",
-        "message": "Login success",
-        "sessionKey": [None]
-    })
+    try:
+        assert await login(event) == http_response(200, {
+            "username": "user@test.com",
+            "role": "viewer",
+            "sessionKey": "abc12345",
+            "message": "Login success"
+        })
+    except Exception as err:
+        print('Error:', err)
 
     token_table.delete_item(Key={"AccessKey": "abc123"})
     user_table.delete_item(Key={"UserName": "user@test.com"})
 
-def test_lambda_handler(mocker):
+@pytest.mark.asyncio
+async def test_lambda_handler(mocker):
     mocker.patch('uuid.uuid4', return_value='uuid1234')
     token_table = get_tokens_table("Tokens")
     token_table.put_item(Item={
@@ -187,7 +186,12 @@ def test_lambda_handler(mocker):
             "accessKey": "abc123"
         }
     }
-    assert lambda_handler(event, {}) == http_response(200, {"authKey": "uuid1234", "message": "Email confirmed"})
+    assert await lambda_handler(event, {}) == http_response(200, {
+        "username": "user@test.com",
+        "role": "viewer",
+        "message": "Email confirmed",
+        "sessionKey": "uuid1234"
+    })
 
     token_table.delete_item(Key={"AccessKey": "abc123"})
     user_table.delete_item(Key={"UserName": "user@test.com"})

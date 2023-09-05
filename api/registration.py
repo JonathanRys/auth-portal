@@ -1,3 +1,7 @@
+"""
+Tokens table tools
+"""
+
 import uuid
 import config
 import smtplib, ssl
@@ -5,7 +9,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dynamodb_tables import get_tokens_table
 
-token_table = get_tokens_table(config.TOKEN_TABLE)
+token_table = get_tokens_table(config.TOKENS_TABLE)
 
 def validate_access_key(access_key: str) -> str:
     """Checks the access key against the DB"""
@@ -39,7 +43,7 @@ def get_reset_link(username: str) -> str:
             UpdateExpression="SET Valid = :valid",
             ExpressionAttributeValues={":valid": False}
         )
-    return f'{config.API_URL}/resetPassword?accessKey={access_key}'
+    return f'{config.API_URL}/reset_password?accessKey={access_key}'
 
 def send_reset_password_email(recipient: str) -> bool:
     """Sends a password reset email to the recipient"""
