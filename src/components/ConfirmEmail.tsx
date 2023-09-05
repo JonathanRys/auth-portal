@@ -58,15 +58,7 @@ const ConfirmEmail = () => {
     return (
         <>
             {success ? (
-                <Navigate to="/gpt" />
-            ) :(
                 <section>
-                    <p
-                        ref={errRef} 
-                        className={errMsg ? 'error': 'aria-hidden'}
-                        aria-live="assertive">
-                        {errMsg}
-                    </p>
                     <h1>Email confirmed</h1>
                     <p>Your email has been confiremed.</p>                        
 
@@ -75,6 +67,29 @@ const ConfirmEmail = () => {
                             <a href="/gpt">Phys GPT</a>
                         </span>
                     </p>
+                </section>
+            ) : (
+                <section>
+                    <p
+                        ref={errRef} 
+                        className={errMsg ? 'error': 'aria-hidden'}
+                        aria-live="assertive">
+                        {errMsg}
+                    </p>
+                    <h1>We can't find your email</h1>
+                    <p>There was an error processing your request.</p>
+                    <div className="login-links">
+                        <p>
+                            <span className="inline">
+                                <a href="/register">Register again</a>
+                            </span>
+                        </p>
+                        <p>
+                            <span className="inline">
+                                <a href="/reset_password">Forgot password?</a>
+                            </span>
+                        </p>
+                    </div>
                 </section>
             )}
         </>

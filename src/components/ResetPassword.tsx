@@ -1,17 +1,16 @@
-import { useState, useEffect, useRef, useContext, FormEvent } from 'react';
+import { useState, useEffect, useRef, FormEvent } from 'react';
 
-import { getCookie, setCookie } from '../util/cookie';
+import { setCookie } from '../util/cookie';
 import axios from '../api/axios';
 import { Navigate } from 'react-router-dom';
 
 const RESET_PW_URL = '/login';
-const username = getCookie('user');
 
 const ResetPassword = () => {
     const userRef = useRef<HTMLInputElement>();
     const errRef = useRef<HTMLParagraphElement>();
 
-    const [user, setUser] = useState(username);
+    const [user, setUser] = useState('');
     const [errMsg, setErrMsg] = useState('');
     // temp until navigation is set up
     const [success, setSuccess] = useState(false);
