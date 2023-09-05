@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useContext } from 'react';
 import { setCookie } from '../util/cookie';
 import AuthContext from '../context/AuthProvider';
 import axios from '../api/axios';
-import { Navigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 
 const CONFIRM_EMAIL_URL = '/confirm_email';
 
