@@ -42,7 +42,7 @@ def validate_session_key(session_key: str):
     ).get('Item', {})
 
     if response.get('Active'):
-        return response.get('Userame')
+        return response.get('UserName')
     return None
 
 def invalidate_session(session_key: str):
