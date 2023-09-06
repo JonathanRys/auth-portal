@@ -22,6 +22,9 @@ from ..models import EmailConfirmation, \
 
 from ..dynamodb_tables import get_users_table, get_tokens_table
 
+users_table = get_users_table(config.USERS_TABLE)
+tokens_table = get_users_table(config.TOKENS_TABLE)
+
 # Tests
 def test_http_response():
     assert http_response(200, {"authKey": '12bc45ad367', "message": "Test success"}) == {
@@ -37,14 +40,13 @@ def test_http_response():
 @pytest.mark.asyncio
 async def test_confirm_email(mocker):
     mocker.patch('uuid.uuid4', return_value='uuid1234')
-    token_table = get_tokens_table("Tokens")
-    token_table.put_item(Item={
+
+    tokens_table.put_item(Item={
         "UserName": "user@test.com",
         "AccessKey": "abc123",
         "Valid": True
     })
-    user_table = get_users_table("Users")
-    user_table.put_item(Item={
+    users_table.put_item(Item={
         "UserName": "user@test.com",
         "Password": "password",
         "RateLimit": 1000,
@@ -69,30 +71,28 @@ async def test_confirm_email(mocker):
         "sessionKey": "uuid1234"
     })
 
-    token_table.delete_item(Key={"AccessKey": "abc123"})
-    user_table.delete_item(Key={"UserName": "user@test.com"})
-
-# def test_refresh_access_token():
-#     assert refresh_access_token() ==
+    tokens_table.delete_item(Key={"AccessKey": "abc123"})
+    users_table.delete_item(Key={"UserName": "user@test.com"})
 
 @pytest.mark.asyncio
 async def test_reset_password(mocker):
     """Test reset password"""
+    mocker.patch('uuid.uuid4', return_value='uuid1234')
     mocker.patch('smtplib.SMTP_SSL')
     # @todo, this test should fail
     event = ResetPassword(username="testuser@gmail.com")
     assert await reset_password(event) == http_response(200, { "message": "Password reset email sent" })
+    tokens_table.delete_item(Key={"AccessKey": "uuid1234"})
 
 @pytest.mark.asyncio
 async def test_change_password():
-    token_table = get_tokens_table("Tokens")
-    token_table.put_item(Item={
+    tokens_table.put_item(Item={
         "UserName": "user@test.com",
         "AccessKey": "abc123",
         "Valid": True
     })
-    user_table = get_users_table("Users")
-    user_table.put_item(Item={
+    users_table = get_users_table("Users")
+    users_table.put_item(Item={
         "UserName": "user@test.com",
         "Password": "1523bc8e0ba72600083dcf5dfb37a8582994183d784a747e3f6fbc963dc882b6",
         "RateLimit": 1000,
@@ -108,32 +108,32 @@ async def test_change_password():
     )
 
     assert await change_password(event) == http_response(200, {"UserName": "user@test.com", "message": "Password updated"})
-    token_table.delete_item(Key={"AccessKey": "abc123"})
-    user_table.delete_item(Key={"UserName": "user@test.com"})
+    tokens_table.delete_item(Key={"AccessKey": "abc123"})
+    users_table.delete_item(Key={"UserName": "user@test.com"})
 
 @pytest.mark.asyncio
 async def test_register(mocker):
     """Test register"""
-    user_table = get_users_table("Users")
-    user_table.delete_item(Key={"UserName": "user@test.com"})
+    mocker.patch('uuid.uuid4', return_value='uuid1234')
     mocker.patch('smtplib.SMTP_SSL')
+
+    users_table.delete_item(Key={"UserName": "user@test.com"})
     event = NewUser(
         username="user@test.com",
         password="ValidP@ssw0rd"
     )
     assert await register(event) == http_response(201, { "message": "Registration success" })
-    user_table.delete_item(Key={"UserName": "user@test.com"})
+    users_table.delete_item(Key={"UserName": "user@test.com"})
+    tokens_table.delete_item(Key={"AccessKey": "uuid1234"})
 
 @pytest.mark.asyncio
 async def test_login():
-    token_table = get_tokens_table("Tokens")
-    token_table.put_item(Item={
+    tokens_table.put_item(Item={
         "UserName": "user@test.com",
         "AccessKey": "abc123",
         "Valid": True
     })
-    user_table = get_users_table("Users")
-    user_table.put_item(Item={
+    users_table.put_item(Item={
         "UserName": "user@test.com",
         "Password": "8d3f8e0d344be93893a5ca049c2ce630471c5f7557156487bfd7e98fb82f1e44",
         "RateLimit": 1000,
@@ -157,20 +157,18 @@ async def test_login():
     except Exception as err:
         print('Error:', err)
 
-    token_table.delete_item(Key={"AccessKey": "abc123"})
-    user_table.delete_item(Key={"UserName": "user@test.com"})
+    tokens_table.delete_item(Key={"AccessKey": "abc123"})
+    users_table.delete_item(Key={"UserName": "user@test.com"})
 
 @pytest.mark.asyncio
 async def test_lambda_handler(mocker):
     mocker.patch('uuid.uuid4', return_value='uuid1234')
-    token_table = get_tokens_table("Tokens")
-    token_table.put_item(Item={
+    tokens_table.put_item(Item={
         "UserName": "user@test.com",
         "AccessKey": "abc123",
         "Valid": True
     })
-    user_table = get_users_table("Users")
-    user_table.put_item(Item={
+    users_table.put_item(Item={
         "UserName": "user@test.com",
         "Password": "8d3f8e0d344be93893a5ca049c2ce630471c5f7557156487bfd7e98fb82f1e44",
         "RateLimit": 1000,
@@ -193,5 +191,5 @@ async def test_lambda_handler(mocker):
         "sessionKey": "uuid1234"
     })
 
-    token_table.delete_item(Key={"AccessKey": "abc123"})
-    user_table.delete_item(Key={"UserName": "user@test.com"})
+    tokens_table.delete_item(Key={"AccessKey": "abc123"})
+    users_table.delete_item(Key={"UserName": "user@test.com"})

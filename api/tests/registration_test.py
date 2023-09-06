@@ -7,40 +7,47 @@ from ..registration import validate_access_key, \
 
 from ..dynamodb_tables import get_tokens_table
 
-token_table = "Tokens"
+tokens_table = get_tokens_table(config.TOKENS_TABLE)
 
 def test_validate_access_key():
-    table = get_tokens_table(token_table)
-    table.put_item(Item={
+    tokens_table.put_item(Item={
         "UserName": "user@test.com",
         "AccessKey": "abc123",
         "Valid": True
     })
     assert validate_access_key("abc123") == "user@test.com"
 
-    table.delete_item(Key={"AccessKey": "abc123"})
+    tokens_table.delete_item(Key={"AccessKey": "abc123"})
 
-def test_get_registration_link():
+def test_get_registration_link(mocker):
+    mocker.patch('uuid.uuid4', return_value='uuid1234')
     expected_result = f'{config.API_URL}/confirm_email?accessKey='
     assert get_registration_link("testuser@gmail.com")[:len(expected_result)] == expected_result
+    tokens_table.delete_item(Key={"AccessKey": "uuid1234"})
 
-def test_get_reset_link():
+def test_get_reset_link(mocker):
+    mocker.patch('uuid.uuid4', return_value='uuid1234')
     expected_result = f'{config.API_URL}/reset_password?accessKey='
     assert get_reset_link("testuser@gmail.com")[:len(expected_result)] == expected_result
+    tokens_table.delete_item(Key={"AccessKey": "uuid1234"})
 
 def test_send_reset_password_email(mocker):
-    table = get_tokens_table(token_table)
-    table.put_item(Item={
+    mocker.patch('uuid.uuid4', return_value='uuid1234')
+    mocker.patch('smtplib.SMTP_SSL')
+    tokens_table.put_item(Item={
         "UserName": "user@test.com",
         "AccessKey": "abc123",
         "Valid": True
     })
-    mocker.patch('smtplib.SMTP_SSL')
+    
     assert send_reset_password_email("testuser@gmail.com") == True
 
-    table.delete_item(Key={"AccessKey": "abc123"})
+    tokens_table.delete_item(Key={"AccessKey": "abc123"})
+    tokens_table.delete_item(Key={"AccessKey": "uuid1234"})
 
 def test_send_registration_email(mocker):
     """Test send registration email"""
+    mocker.patch('uuid.uuid4', return_value='uuid1234')
     mocker.patch('smtplib.SMTP_SSL')
     assert send_registration_email("testuser@gmail.com") == True
+    tokens_table.delete_item(Key={"AccessKey": "uuid1234"})
