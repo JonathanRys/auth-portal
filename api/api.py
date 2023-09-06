@@ -2,10 +2,6 @@
 API controllers
 """
 
-import uuid
-import hashlib
-from datetime import datetime
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -17,6 +13,7 @@ from user import get_user, \
                 update_timestamp, \
                 update_password, \
                 validate_auth_key, \
+                compare_to_hash, \
                 is_valid_user, \
                 is_valid_password
 
@@ -57,7 +54,6 @@ async def confirm_email(user: EmailConfirmation):
     accessKey = user.accessKey
     username = validate_access_key(accessKey)
     if username:
-        auth_key = str(uuid.uuid4())
         await set_user_role(username, 'viewer')
 
         payload = {
@@ -97,8 +93,8 @@ async def change_password(user: UpdatePassword):
     # validate user
     pw_hash = get_user(username).get('Password')
 
-    if pw_hash != hashlib.sha3_256(password.encode()).hexdigest():
-        return http_response(401, "Incorrect Password")
+    if not compare_to_hash(password, pw_hash):
+        return http_response(401, {"message": "Incorrect Password"})
     
     await update_password(username, new_password)
     return http_response(200, {"UserName": username, "message": "Password updated"})
@@ -117,12 +113,9 @@ async def register(new_user: NewUser):
     if username == get_user(username).get('UserName'):
         return http_response(409, {"message": 'Username taken'})
 
-    # hash password
-    pw_hash = hashlib.sha3_256(password.encode()).hexdigest()
-
     # write to DB
     try:
-        create_new_user(username, pw_hash)
+        create_new_user(username, password)
         send_registration_email(username)
     except Exception as e:
         api.logger.error(f'Error registering user {username}: {e}')
@@ -148,7 +141,7 @@ async def login(user: ExistingUser):
     
     user = get_user(username)
     pw_hash = user.get('Password')
-    if pw_hash != hashlib.sha3_256(password.encode()).hexdigest():
+    if compare_to_hash(password, pw_hash):
         # log pw attempts and lock account for 10 min if failed more than 5 times
         api.logger.warning(f'Faild password attempt by {username}')
         return http_response(401, {"message": "Invalid username or password attempt."})

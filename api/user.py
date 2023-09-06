@@ -2,7 +2,7 @@
 User table tools
 """
 import re
-import uuid
+import hashlib
 from datetime import datetime
 
 import api
@@ -22,6 +22,12 @@ def is_valid_user(username: str) -> bool:
     email_regex = r"([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\"([]!#-[^-~ \t]|(\\[\t -~]))+\")@([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\[[\t -Z^-~]*])"
     return bool(re.match(email_regex, username))
 
+def compare_to_hash(password: str, hash: str):
+    """Compares a str against a hash"""
+    pw_hash = str(hashlib.sha3_256(password.encode()).hexdigest())
+    print(password, pw_hash, '==', hash)
+    return pw_hash == hash
+
 def validate_auth_key(username: str, auth_key: str):
     """Verify the user's auth key"""
     db_auth_key = get_user(username).get('AuthKey')
@@ -33,7 +39,8 @@ def validate_auth_key(username: str, auth_key: str):
 
 def create_new_user(username: dict, password: str):
     """Create a new user record"""
-    user_table.put_item(Item={"UserName": username, "Password": password})
+    pw_hash = str(hashlib.sha3_256(password.encode()).hexdigest())
+    user_table.put_item(Item={"UserName": username, "Password": pw_hash})
 
 def get_user(username: str) -> dict:
     """Gets the user record"""
@@ -74,8 +81,9 @@ async def set_user_role(username: str, role: str):
 
 async def update_password(username: str, new_password: str):
     """Update the user's password"""
+    pw_hash = str(hashlib.sha3_256(new_password.encode()).hexdigest())
     return user_table.update_item(
         Key={"UserName": username},
         UpdateExpression="SET Password = :password",
-        ExpressionAttributeValues={ ":password": new_password }
+        ExpressionAttributeValues={ ":password": pw_hash }
     )
