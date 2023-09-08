@@ -34,7 +34,6 @@ class ExistingUser(BaseModel):
     """Data class for register endpoint"""
     username: str
     password: str
-    authKey: str
 
 class AuthenticatingUser(BaseModel):
     """Data class for verifying a session"""

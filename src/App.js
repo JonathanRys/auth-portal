@@ -2,6 +2,7 @@ import Registration from './components/Registration';
 import Layout from './components/Layout';
 import Login from './components/Login';
 import Logout from './components/Logout';
+import SetNewPassword from './components/SetNewPassword';
 import ResetPassword from './components/ResetPassword';
 import UpdatePassword from './components/UpdatePassword';
 import ConfirmEmail from './components/ConfirmEmail'
@@ -37,6 +38,7 @@ function App() {
         <Route path="/" element={ user ? <Login /> : <Registration /> } />
         <Route path='login' element={ <Login /> } />
         <Route path='register' element={ <Registration /> } />
+        <Route path='set_new_password' element={ <SetNewPassword /> } />
         <Route path='reset_password' element={ <ResetPassword /> } />
         <Route path='update_password' element={ <UpdatePassword /> } />
         <Route path='confirm_email' element={ <ConfirmEmail /> } />

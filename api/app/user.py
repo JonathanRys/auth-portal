@@ -26,18 +26,12 @@ def is_valid_user(username: str) -> bool:
 
 def compare_to_hash(password: str, user_hash: str):
     """Compares a str against a hash"""
-    print('user hash:', user_hash, type(user_hash))
     pw_hash = hashlib.sha3_256(password.encode()).hexdigest()
-    print(f'?? {pw_hash} == {user_hash}')
     return pw_hash == user_hash
 
-def validate_auth_key(username: str, auth_key: str):
+def validate_auth_key(username: str):
     """Verify the user's auth key"""
     db_auth_key = get_user(username).get('AuthKey')
-    if auth_key:
-        if db_auth_key == auth_key:
-            return auth_key
-        return None
     return db_auth_key
 
 def create_new_user(username: dict, password: str):

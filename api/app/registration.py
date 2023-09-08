@@ -55,7 +55,7 @@ def get_reset_link(username: str) -> str:
                 ":valid": False, ":username": username, ":last_modified": str(datetime.utcnow())
             }
         )
-    return f'{config.API_URL}/update_password?accessKey={access_key}'
+    return f'{config.API_URL}/set_new_password?accessKey={access_key}'
 
 def send_reset_password_email(recipient: str) -> bool:
     """Sends a password reset email to the recipient"""

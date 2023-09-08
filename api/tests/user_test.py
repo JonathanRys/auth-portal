@@ -65,7 +65,7 @@ def test_validate_auth_key():
     """Test validate_auth_key"""
     username = "test@gmail.com"
     auth_key = "abc123"
-    assert validate_auth_key(username, auth_key) == auth_key
+    assert validate_auth_key(username) == auth_key
 
 def test_create_new_user():
     """Test create_new_user"""

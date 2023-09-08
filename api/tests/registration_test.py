@@ -32,7 +32,7 @@ def test_get_registration_link(mocker):
 def test_get_reset_link(mocker):
     """Test get_reset_link"""
     mocker.patch('uuid.uuid4', return_value='uuid1234')
-    expected_result = f'{config.API_URL}/reset_password?accessKey='
+    expected_result = f'{config.API_URL}/set_new_password?accessKey='
     assert get_reset_link("testuser@gmail.com")[:len(expected_result)] == expected_result
     tokens_table.delete_item(Key={"AccessKey": "uuid1234"})
 

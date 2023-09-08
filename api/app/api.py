@@ -80,8 +80,8 @@ async def reset_password(user: ResetPassword):
         return http_response(200, { "message": "Password reset email sent" })
     return http_response(500, {"message": 'Server error'})
 
-@app.post("/change_password")
-async def change_password(user: UpdatePassword):
+@app.post("/set_new_password")
+async def set_new_password(user: UpdatePassword):
     """Allow user to change their password (POST)"""
     username = user.username
     password = user.password
@@ -133,20 +133,19 @@ async def login(user: ExistingUser):
     """Allow the user to login (POST)"""
     username = user.username
     password = user.password
-    session_key = user.authKey
     # validate / scrub data
     if not is_valid_user(username) or not is_valid_password(password):
         logger.error('User %s attempted to bypass frontend security using incorrect password.', username)
         return http_response(403, {"message": 'Forbidden'})
 
-    if not validate_auth_key(username, session_key):
-        # The user hasn't validated their email yet
-        return http_response(401, {"message": 'Please validate your email address.'})
-    
     user = get_user(username)
     pw_hash = user.get('Password')
 
-    print(f'Check {password} == {pw_hash}')
+    auth_key = validate_auth_key(username)
+
+    if not auth_key:
+        # The user hasn't validated their email yet
+        return http_response(401, {"message": 'Please validate your email address.'})
 
     if not compare_to_hash(password, pw_hash):
         # log pw attempts and lock account for 10 min if failed more than 5 times
@@ -162,7 +161,7 @@ async def login(user: ExistingUser):
     payload = {
         "username": username,
         "role": user.get('AuthRole'),
-        "authKey": user.get('AuthKey', '') or session_key,
+        "authKey": user.get('AuthKey', '') or auth_key,
         "message": "Login success"
     }
 
@@ -174,9 +173,9 @@ async def login(user: ExistingUser):
 async def logout(user: AuthenticatingUser):
     """Allow the user to logout (POST)"""
     username = user.username
-    auth_key = user.authKey
-    if validate_auth_key(username, auth_key) and validate_session_key(auth_key):
-        invalidate_session(auth_key)
+    session_key = user.authKey
+    if validate_auth_key(username) and validate_session_key(session_key):
+        invalidate_session(session_key)
 
     payload = {
         "username": username,
@@ -195,7 +194,7 @@ async def logout(user: AuthenticatingUser):
 #         "/login": login,
 #         "/register": register,
 #         "/reset_password": reset_password,
-#         "/change_password": change_password
+#         "/set_new_password": set_new_password
 #     }
 # }
 
@@ -204,7 +203,7 @@ async def logout(user: AuthenticatingUser):
 #     "/login": ExistingUser,
 #     "/register": NewUser,
 #     "/reset_password": ResetPassword,
-#     "/change_password": UpdatePassword
+#     "/set_new_password": UpdatePassword
 # }
 
 # async def lambda_handler(event: any, context: any):

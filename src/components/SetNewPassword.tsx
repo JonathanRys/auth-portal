@@ -6,9 +6,9 @@ import axios from '../api/axios';
 
 import { Navigate } from 'react-router-dom';
 
-const RESET_PASSWORD_URL = '/update_password';
+const RESET_PASSWORD_URL = '/set_new_password';
 
-const UpdatePassword = () => {
+const SetNewPassword = () => {
     // @ts-ignore
     const { setAuth } = useContext(AuthContext);
 
@@ -16,8 +16,8 @@ const UpdatePassword = () => {
     const errRef = useRef<HTMLParagraphElement>();
 
     const [user, setUser] = useState('');
+    const [password, setPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
     const [errMsg, setErrMsg] = useState('');
     // temp until navigation is set up
     const [success, setSuccess] = useState(false);
@@ -28,7 +28,7 @@ const UpdatePassword = () => {
 
     useEffect(() => {
         setErrMsg('');
-    }, [user, newPassword, confirmPassword])
+    }, [user, password])
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -36,7 +36,7 @@ const UpdatePassword = () => {
         try {
             const response = await axios.post(RESET_PASSWORD_URL, 
                 JSON.stringify({
-                    user, newPassword
+                    user, password
                 }), {
                     headers: { 'Content-Type': 'application/json' },
                     withCredentials: true
@@ -48,15 +48,15 @@ const UpdatePassword = () => {
             }
 
             const authKey = response?.data?.authKey;
-            const role = response?.data?.role;
+            const roles = response?.data?.roles;
 
-            setAuth({ user, newPassword, role, authKey })
+            setAuth({ user, password, roles, authKey })
             setCookie('user', user);
-            setCookie('role', role);
+            setCookie('roles', roles);
             setCookie('authKey', authKey);
 
             setUser('');
-            setNewPassword('');
+            setPassword('');
             setSuccess(true);
         } catch (e) {
             if (e?.response) {
@@ -96,23 +96,23 @@ const UpdatePassword = () => {
                             value={user}
                             required
                         />
+                        <label htmlFor="password">Password:</label>
+                        <input 
+                            type="password"
+                            id="password"
+                            onChange={e => setPassword(e.target.value)}
+                            value={password}
+                            required
+                        />
                         <label htmlFor="new-password">New password:</label>
                         <input 
                             type="password"
                             id="new-password"
                             onChange={e => setNewPassword(e.target.value)}
-                            value={newPassword}
+                            value={password}
                             required
                         />
-                        <label htmlFor="confirm-password">Confirm password:</label>
-                        <input 
-                            type="password"
-                            id="confirm-password"
-                            onChange={e => setConfirmPassword(e.target.value)}
-                            value={confirmPassword}
-                            required
-                        />
-                        <button disabled={!user || !newPassword || !confirmPassword ? true : false}>Update Password</button>
+                        <button disabled={!user || !password || !newPassword ? true : false}>Update Password</button>
                         <p>
                             Happy with your password?<br />
                             <span className="inline">
@@ -126,4 +126,4 @@ const UpdatePassword = () => {
     )
 }
 
-export default UpdatePassword
+export default SetNewPassword

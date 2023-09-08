@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, FormEvent } from 'react';
 
 import { setCookie } from '../util/cookie';
 import axios from '../api/axios';
-import { Navigate } from 'react-router-dom';
 
 const RESET_PW_URL = '/reset_password';
 
@@ -55,7 +54,10 @@ const ResetPassword = () => {
     return (
         <>
             {success ? (
-                <Navigate to="/login" />
+                <section>
+                    <h1>Password reset email sent</h1>
+                    <p>Please check your email for a reset link.</p>
+                </section>
             ) :(
                 <section>
                     <p

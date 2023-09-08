@@ -9,7 +9,7 @@ from app import config
 from app.api import confirm_email, \
                 reset_password, \
                 register, \
-                change_password, \
+                set_new_password, \
                 login
 
 from app.models import EmailConfirmation, \
@@ -76,8 +76,8 @@ async def test_reset_password(mocker):
     tokens_table.delete_item(Key={"AccessKey": "uuid1234"})
 
 @pytest.mark.asyncio
-async def test_change_password():
-    """Test change_password"""
+async def test_set_new_password():
+    """Test set_new_password"""
     tokens_table.put_item(Item={
         "UserName": "user@test.com",
         "AccessKey": "abc123",
@@ -98,7 +98,7 @@ async def test_change_password():
         newPassword="ValidP@ssw0rd"
     )
 
-    assert await change_password(event) == http_response(200, {"UserName": "user@test.com", "message": "Password updated"})
+    assert await set_new_password(event) == http_response(200, {"UserName": "user@test.com", "message": "Password updated"})
     tokens_table.delete_item(Key={"AccessKey": "abc123"})
     users_table.delete_item(Key={"UserName": "user@test.com"})
 
