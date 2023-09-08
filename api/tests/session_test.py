@@ -3,10 +3,10 @@ Test for session module
 """
 
 import pytest
-from .. import config
+import config
 
-from ..session import new_session, validate_session_key, invalidate_session
-from ..dynamodb_tables import get_sessions_table, get_users_table
+from session import new_session, validate_session_key, invalidate_session
+from dynamodb_tables import get_sessions_table, get_users_table
 
 sessions_table = get_sessions_table(config.SESSIONS_TABLE)
 users_table = get_users_table(config.USERS_TABLE)

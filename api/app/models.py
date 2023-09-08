@@ -35,3 +35,8 @@ class ExistingUser(BaseModel):
     username: str
     password: str
     authKey: str
+
+class AuthenticatingUser(BaseModel):
+    """Data class for verifying a session"""
+    username: str
+    authKey: str

@@ -3,7 +3,7 @@ Functions to get or create DynamoDB tables
 """
 
 import boto3
-import config
+from . import config
 
 # connect to DB
 dynamodb = boto3.resource('dynamodb')

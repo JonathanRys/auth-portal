@@ -2,17 +2,13 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Application
+## Front-end
 
-### Front-end
-
-In the project directory, you can run:
+To install the project dependencies, in the project directory, run:
 
 ```console
 npm install
 ```
-
-to install the project dependencies.
 
 Then start the development server:
 
@@ -26,7 +22,7 @@ Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 The page will reload when you make changes.\
 You may also see any lint errors in the console.
 
-### Back-end
+## Back-end
 
 ##### Set you AWS profile and credentials so the app can talk to the database.
 
@@ -72,20 +68,22 @@ source ./venv/bin/activate
 
 ##### Start the API server
 
-```
-uvicorn api:app --reload
+```console
+uvicorn api:app --port: 80 --reload
 ```
 
 ### Update your hosts file
 
-Add this line to your hosts file
+Add this line to your [hosts file](https://www.hostinger.com/tutorials/how-to-edit-hosts-file)
 
-#### `127.0.0.1 local.host`
+```console
+127.0.0.1 local.host
+```
 
 ## Config
 
-```
-API_URL = "http://local.host:3000"
+```python
+API_URL = "http://local.host"
 SERVICE_EMAIL
 EMAIL_PW
 

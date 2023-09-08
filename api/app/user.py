@@ -5,10 +5,10 @@ import re
 import hashlib
 from datetime import datetime
 
-import api
-import config
-from util import http_response
-from dynamodb_tables import get_users_table
+from . import logger
+from . import config
+from .util import http_response
+from .dynamodb_tables import get_users_table
 
 user_table = get_users_table(config.USERS_TABLE)
 
@@ -22,11 +22,10 @@ def is_valid_user(username: str) -> bool:
     email_regex = r"([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\"([]!#-[^-~ \t]|(\\[\t -~]))+\")@([-!#-'*+/-9=?A-Z^-~]+(\.[-!#-'*+/-9=?A-Z^-~]+)*|\[[\t -Z^-~]*])"
     return bool(re.match(email_regex, username))
 
-def compare_to_hash(password: str, hash: str):
+def compare_to_hash(password: str, user_hash: str):
     """Compares a str against a hash"""
     pw_hash = str(hashlib.sha3_256(password.encode()).hexdigest())
-    print(password, pw_hash, '==', hash)
-    return pw_hash == hash
+    return pw_hash == user_hash
 
 def validate_auth_key(username: str, auth_key: str):
     """Verify the user's auth key"""
@@ -55,8 +54,8 @@ def update_timestamp(username: str):
             UpdateExpression="SET LastLogin = :last_login",
             ExpressionAttributeValues={":last_login": str(datetime.utcnow())}
         )
-    except Exception as e:
-        api.logger.warning(f'Error updating user {username}: {e}')
+    except Exception as err:
+        logger.warning('Error updating user %s: %s', username, err)
         return http_response(500, {"message": 'Server Error'})
 
 async def set_user_auth(username: str, auth_key: str):

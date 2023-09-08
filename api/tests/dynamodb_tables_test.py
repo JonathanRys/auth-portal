@@ -1,8 +1,8 @@
 from datetime import datetime
 from decimal import Decimal
 
-from ..dynamodb_tables import get_users_table, get_tokens_table, get_sessions_table
-from ..dynamodb_tables import get_queries_table, get_flagged_docs_table
+from dynamodb_tables import get_users_table, get_tokens_table, get_sessions_table
+from dynamodb_tables import get_queries_table, get_flagged_docs_table
 
 def test_get_users_table():
     table = get_users_table("Users")

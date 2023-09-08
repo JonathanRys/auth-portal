@@ -62,7 +62,6 @@ const Registration = () => {
             return;
         default:
             try{
-                console.log('POSTing to', axios.getUri() + REGISTER_URL)
                 const response = await axios.post(REGISTER_URL, 
                     {
                         "username": user,
@@ -71,7 +70,6 @@ const Registration = () => {
                         withCredentials: true // send cookies
                     }
                 );
-                console.log('DEBUG:', response)
 
                 if (response?.status !== 200) {
                     throw new Error(`Request failed with status ${response?.status}`);
@@ -80,7 +78,7 @@ const Registration = () => {
                 const authKey = response?.data?.authKey;
                 const role = response?.data?.role;
 
-                setAuth({ user, password, role, authKey });
+                setAuth({ user, role, authKey });
                 setCookie('user', user);
                 setCookie('role', role);
                 setCookie('authKey', undefined); // Set this when email is confirmed

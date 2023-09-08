@@ -36,7 +36,7 @@ const ConfirmEmail = () => {
                 });
 
                 setCookie('user', response?.data?.username);
-                setCookie('roles', response?.data?.role);
+                setCookie('role', response?.data?.role);
                 setCookie('authKey', response?.data?.authKey);
                 setCookie('sessionKey', response?.data?.sessionKey);
                 setSuccess(true);
@@ -60,10 +60,9 @@ const ConfirmEmail = () => {
             {success ? (
                 <section>
                     <h1>Email confirmed</h1>
-                    <p>Your email has been confiremed.</p>                        
+                    <p>Your email has been confirmed.</p>                        
 
-                    <p>Continue?
-                        <span className="inline">
+                    <p>Continue to <span className="inline">
                             <a href="/gpt">Phys GPT</a>
                         </span>
                     </p>

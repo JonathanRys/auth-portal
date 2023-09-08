@@ -5,9 +5,9 @@ API controllers
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-import api
+from . import logger
 from .util import http_response
-from user import get_user, \
+from .user import get_user, \
                 create_new_user, \
                 set_user_role, \
                 update_timestamp, \
@@ -17,18 +17,19 @@ from user import get_user, \
                 is_valid_user, \
                 is_valid_password
 
-from registration import validate_access_key, \
+from .registration import validate_access_key, \
                         send_reset_password_email, \
                         send_registration_email
 
-from session import new_session, validate_session_key, invalidate_session
+from .session import new_session, validate_session_key, invalidate_session
 
-from models import LoggedInUser, \
+from .models import LoggedInUser, \
                 EmailConfirmation, \
                 ResetPassword, \
                 UpdatePassword, \
                 NewUser, \
-                ExistingUser
+                ExistingUser, \
+                AuthenticatingUser
 
 origins = [
     "http://localhost:3000",
@@ -55,14 +56,15 @@ async def confirm_email(user: EmailConfirmation):
     username = validate_access_key(accessKey)
     if username:
         await set_user_role(username, 'viewer')
+        session_key = await new_session(username)
 
         payload = {
             "username": username,
             "role": "viewer",
+            "authKey": session_key,
+            "sessionKey": session_key,
             "message": "Email confirmed"
         }
-
-        payload["sessionKey"] = await new_session(username)
 
         return http_response(200, payload)
     return http_response(403, {"message": 'Forbidden'})
@@ -87,7 +89,7 @@ async def change_password(user: UpdatePassword):
     if not is_valid_user(username) or \
        not is_valid_password(password) or \
        not is_valid_password(new_password):
-        api.logger.error(f'User {username} attempted to bypass frontend security using incorrect password.')
+        logger.error('User %s attempted to bypass frontend security using incorrect password.', username)
         return http_response(403, {"message": 'Forbidden'})
 
     # validate user
@@ -106,7 +108,7 @@ async def register(new_user: NewUser):
     password = new_user.password
     # validate / scrub data
     if not is_valid_user(username) or not is_valid_password(password):
-        api.logger.error(f'User {username} attempted to bypass frontend security using incorrect password.')
+        logger.error('User %s attempted to bypass frontend security using incorrect password.', username)
         return http_response(403, {"message": 'Forbidden'})
 
     # check for existing records
@@ -117,8 +119,8 @@ async def register(new_user: NewUser):
     try:
         create_new_user(username, password)
         send_registration_email(username)
-    except Exception as e:
-        api.logger.error(f'Error registering user {username}: {e}')
+    except Exception as err:
+        logger.error('Error registering user %s: %s', username, err)
         return http_response(500, {"message": 'Server error'})
 
     # craft response
@@ -132,7 +134,7 @@ async def login(user: ExistingUser):
     session_key = user.authKey
     # validate / scrub data
     if not is_valid_user(username) or not is_valid_password(password):
-        api.logger.error(f'User {username} attempted to bypass frontend security using incorrect password.')
+        logger.error('User %s attempted to bypass frontend security using incorrect password.', username)
         return http_response(403, {"message": 'Forbidden'})
 
     if not validate_auth_key(username, session_key):
@@ -143,19 +145,19 @@ async def login(user: ExistingUser):
     pw_hash = user.get('Password')
     if compare_to_hash(password, pw_hash):
         # log pw attempts and lock account for 10 min if failed more than 5 times
-        api.logger.warning(f'Faild password attempt by {username}')
+        logger.warning('Faild password attempt by %s', username)
         return http_response(401, {"message": "Invalid username or password attempt."})
 
     try:
         update_timestamp(username)
-    except Exception as e:
-        api.logger.warning(f'Error updating user {username}: {e}')
+    except Exception as err:
+        logger.warning('Error updating user %s: %s', username, err)
         return http_response(500, {"message": 'Server Error'})
     
     payload = {
         "username": username,
         "role": user.get('AuthRole'),
-        "authKey": user.get('AuthKey'),
+        "authKey": user.get('AuthKey', '') or session_key,
         "message": "Login success"
     }
 
@@ -164,7 +166,7 @@ async def login(user: ExistingUser):
     return http_response(200, payload)
 
 @app.post("/logout")
-async def logout(user: ExistingUser):
+async def logout(user: AuthenticatingUser):
     """Allow the user to logout (POST)"""
     username = user.username
     auth_key = user.authKey
@@ -173,41 +175,41 @@ async def logout(user: ExistingUser):
 
     payload = {
         "username": username,
-        "authKey": None,
+        "authKey": "",
         "message": "Logged out"
     }
 
     return http_response(200, payload)
 
-# Handler
-routes = {
-    "GET": {
-        "/confirm_email": confirm_email
-    },
-    "POST": {
-        "/login": login,
-        "/register": register,
-        "/reset_password": reset_password,
-        "/change_password": change_password
-    }
-}
+# # Handler
+# routes = {
+#     "GET": {
+#         "/confirm_email": confirm_email
+#     },
+#     "POST": {
+#         "/login": login,
+#         "/register": register,
+#         "/reset_password": reset_password,
+#         "/change_password": change_password
+#     }
+# }
 
-data_types = {
-    "/confirm_email": EmailConfirmation,
-    "/login": ExistingUser,
-    "/register": NewUser,
-    "/reset_password": ResetPassword,
-    "/change_password": UpdatePassword
-}
+# data_types = {
+#     "/confirm_email": EmailConfirmation,
+#     "/login": ExistingUser,
+#     "/register": NewUser,
+#     "/reset_password": ResetPassword,
+#     "/change_password": UpdatePassword
+# }
 
-async def lambda_handler(event: any, context: any):
-    httpMethod = event.get('httpMethod')
-    path = event.get('path')
-    handler = routes.get(httpMethod, {}).get(path)
-    data_class = data_types[path]
+# async def lambda_handler(event: any, context: any):
+#     httpMethod = event.get('httpMethod')
+#     path = event.get('path')
+#     handler = routes.get(httpMethod, {}).get(path)
+#     data_class = data_types[path]
 
-    if httpMethod == 'GET':
-        qs_params = event.get('queryStringParameters')
-        return await handler(data_class(**qs_params))
-    elif httpMethod == 'POST':
-        return await handler(data_class(event))
+#     if httpMethod == 'GET':
+#         qs_params = event.get('queryStringParameters')
+#         return await handler(data_class(**qs_params))
+#     elif httpMethod == 'POST':
+#         return await handler(data_class(event))

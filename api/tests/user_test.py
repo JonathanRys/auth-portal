@@ -3,10 +3,10 @@
 import pytest
 import hashlib
 
-from .. import config
-from ..dynamodb_tables import get_users_table
+import config
+from dynamodb_tables import get_users_table
 
-from ..user import get_user, \
+from user import get_user, \
                 update_timestamp, \
                 validate_auth_key, \
                 is_valid_user, \

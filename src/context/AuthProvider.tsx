@@ -1,10 +1,17 @@
 import { createContext, useState } from 'react';
 import { Props } from '../types/types'
 
+import { getCookie } from '../util/cookie';
+
+
 const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }: Props) => {
-    const [auth, setAuth] = useState({});
+    const [auth, setAuth] = useState({
+        "user": getCookie('user'),
+        "role": getCookie('role'),
+        "authKey": getCookie('authKey'),
+    });
 
     return (
         <AuthContext.Provider value={{ auth, setAuth }}>

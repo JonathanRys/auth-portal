@@ -3,18 +3,20 @@ API Utilities
 """
 
 import json
-import config
 from fastapi import HTTPException
+from . import config
 
 # Utilities
-def http_response(statusCode: int, body: any=None):
+def http_response(status_code: int, body: any=None):
     """Generates a standard HTTP response"""
-    if statusCode >= 400:
-        raise HTTPException(status_code=statusCode, detail=body.get('message'))
+    if status_code >= 400:
+        raise HTTPException(status_code=status_code, detail=body.get('message'))
+    x = {**body}
+    print(f'body: {x}')
 
     response = {
-        "statusCode": statusCode,
-        "authKey": body.get('authKey') if body else None,
+        **body,
+        "statusCode": status_code,
         "headers": {
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": config.APP_ORIGIN

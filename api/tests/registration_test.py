@@ -1,11 +1,13 @@
-from .. import config
-from ..registration import validate_access_key, \
+"""Test registration"""
+
+import config
+from registration import validate_access_key, \
                          get_registration_link, \
                          get_reset_link, \
                          send_registration_email, \
                          send_reset_password_email
 
-from ..dynamodb_tables import get_tokens_table
+from dynamodb_tables import get_tokens_table
 
 tokens_table = get_tokens_table(config.TOKENS_TABLE)
 

@@ -3,11 +3,14 @@ Tokens table tools
 """
 
 import uuid
-import config
-import smtplib, ssl
+
+import ssl
+import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from dynamodb_tables import get_tokens_table
+
+from . import config
+from .dynamodb_tables import get_tokens_table
 
 token_table = get_tokens_table(config.TOKENS_TABLE)
 

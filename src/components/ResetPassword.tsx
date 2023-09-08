@@ -4,7 +4,7 @@ import { setCookie } from '../util/cookie';
 import axios from '../api/axios';
 import { Navigate } from 'react-router-dom';
 
-const RESET_PW_URL = '/login';
+const RESET_PW_URL = '/reset_password';
 
 const ResetPassword = () => {
     const userRef = useRef<HTMLInputElement>();
@@ -23,7 +23,6 @@ const ResetPassword = () => {
         e.preventDefault();
 
         try {
-            console.log('POSTing to', RESET_PW_URL);
             const response = await axios.post(RESET_PW_URL, 
                 {
                     "username": user
@@ -31,8 +30,6 @@ const ResetPassword = () => {
                     withCredentials: true
                 }
             );
-
-            console.log('DEBUG:', response)
 
             if (response?.status !== 200) {
                 throw new Error(`Request failed with status ${response?.status}`);

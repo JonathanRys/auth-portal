@@ -1,6 +1,7 @@
 import Registration from './components/Registration';
 import Layout from './components/Layout';
 import Login from './components/Login';
+import Logout from './components/Logout';
 import ResetPassword from './components/ResetPassword';
 import UpdatePassword from './components/UpdatePassword';
 import ConfirmEmail from './components/ConfirmEmail'
@@ -15,15 +16,14 @@ const user = getCookie('user');
 
 const ProtectedRoute = ({ children }) => {
   const user = getCookie('user');
-  const roles = getCookie('roles');
+  const role = getCookie('role');
   const authKey = getCookie('authKey');
   // Check authentication
-  if (!(user && roles && authKey)) {
+  if (!(user && role && authKey)) {
     return <Navigate to="/" />;
   }
   // Check authorization
-  // define pageRoles
-  if (!(roles in ['viewer', 'editor', 'admin'])) {
+  if (!['viewer', 'editor', 'admin'].includes(role)) {
     return <Navigate to="/" />;
   }
   return children
@@ -40,6 +40,7 @@ function App() {
         <Route path='reset_password' element={ <ResetPassword /> } />
         <Route path='update_password' element={ <UpdatePassword /> } />
         <Route path='confirm_email' element={ <ConfirmEmail /> } />
+        <Route path='logout' element={ <Logout /> } />
         <Route path='gpt' element={
           <ProtectedRoute>
             <PhysGPT />

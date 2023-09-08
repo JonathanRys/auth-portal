@@ -6,7 +6,7 @@ import axios from '../api/axios';
 
 import { Navigate } from 'react-router-dom';
 
-const RESET_PASSWORD_URL = '/reset_password';
+const RESET_PASSWORD_URL = '/change_password';
 
 const UpdatePassword = () => {
     // @ts-ignore
@@ -48,11 +48,11 @@ const UpdatePassword = () => {
             }
 
             const authKey = response?.data?.authKey;
-            const roles = response?.data?.roles;
+            const role = response?.data?.role;
 
-            setAuth({ user, password, roles, authKey })
+            setAuth({ user, password, role, authKey })
             setCookie('user', user);
-            setCookie('roles', roles);
+            setCookie('role', role);
             setCookie('authKey', authKey);
 
             setUser('');

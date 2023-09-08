@@ -17,7 +17,7 @@ const Login = () => {
     const [user, setUser] = useState('');
     const [password, setPassword] = useState('');
     const [authKey, setAuthKey] = useState('');
-    const [role, setRole] = useState('');
+
     const [errMsg, setErrMsg] = useState('');
     // temp until navigation is set up
     const [success, setSuccess] = useState(false);
@@ -34,7 +34,6 @@ const Login = () => {
         e.preventDefault();
 
         try {
-            console.log('POSTing to', LOGIN_URL)
             try {
                 const response = await axios.post(LOGIN_URL, 
                     {
@@ -46,23 +45,27 @@ const Login = () => {
                     }
                 );
 
-                console.log('DEBUG:', response)
-
                 if (response?.status !== 200) {
                     throw new Error(`Request failed with status ${response?.status}`);
                 }
 
-                setAuthKey(response?.data?.authKey);
-                setRole(response?.data?.role);
-            } catch (e) {
-                console.log('error', e)
-            }
+                const _role = response?.data?.role
+                const _authKey = response?.data?.authKey
+                const _sessionKey = response?.data?.sessionKey
 
-            setAuth({ user, password, role, authKey })
-            setCookie('user', user);
-            setCookie('role', role);
-            if (authKey) {
-                setCookie('authKey', authKey);
+                setAuthKey(response?.data?.authKey);
+
+                setAuth({ user, _role, _sessionKey, _authKey });
+                setCookie('user', user);
+                setCookie('role', _role);
+                if (_authKey) {
+                    setCookie('authKey', _authKey);
+                }
+                if (_sessionKey) {
+                    setCookie('sessionKey', _sessionKey);
+                }
+            } catch (e) {
+                console.log('error', e);
             }
 
             setUser('');
@@ -73,11 +76,11 @@ const Login = () => {
                 setErrMsg('No server response');
             } else if (e.response?.status === 409) {
                 // missing username or password
-                setErrMsg('Missing username or password.')
+                setErrMsg('Missing username or password.');
             } else if (e.response?.status === 401) {
                 setErrMsg('Unauthorized.');
             } else {
-                setErrMsg('Login failed.')
+                setErrMsg('Login failed.');
             }
             errRef?.current.focus();        
         }

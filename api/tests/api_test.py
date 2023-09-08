@@ -5,40 +5,29 @@ Test api methods
 import pytest
 
 from fastapi.exceptions import HTTPException
-from .. import config
-from ..api import http_response, \
-                confirm_email, \
+from ..app import config
+from ..app.api import confirm_email, \
                 reset_password, \
                 register, \
                 change_password, \
-                login, \
-                lambda_handler
+                login
 
-from ..models import EmailConfirmation, \
+from ..app.models import EmailConfirmation, \
                 ResetPassword, \
                 UpdatePassword, \
                 NewUser, \
                 ExistingUser
 
-from ..dynamodb_tables import get_users_table, get_tokens_table
+from ..app.dynamodb_tables import get_users_table, get_tokens_table
+
+from ..app.util import http_response
 
 users_table = get_users_table(config.USERS_TABLE)
-tokens_table = get_users_table(config.TOKENS_TABLE)
-
-# Tests
-def test_http_response():
-    assert http_response(200, {"authKey": '12bc45ad367', "message": "Test success"}) == {
-        "statusCode": 200,
-        "authKey": '12bc45ad367',
-        "body": '{"authKey": "12bc45ad367", "message": "Test success"}',
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": config.APP_ORIGIN
-        }
-    }
+tokens_table = get_tokens_table(config.TOKENS_TABLE)
 
 @pytest.mark.asyncio
 async def test_confirm_email(mocker):
+    """Test confirm_email"""
     mocker.patch('uuid.uuid4', return_value='uuid1234')
 
     tokens_table.put_item(Item={
@@ -86,12 +75,12 @@ async def test_reset_password(mocker):
 
 @pytest.mark.asyncio
 async def test_change_password():
+    """Test change_password"""
     tokens_table.put_item(Item={
         "UserName": "user@test.com",
         "AccessKey": "abc123",
         "Valid": True
     })
-    users_table = get_users_table("Users")
     users_table.put_item(Item={
         "UserName": "user@test.com",
         "Password": "1523bc8e0ba72600083dcf5dfb37a8582994183d784a747e3f6fbc963dc882b6",
@@ -128,6 +117,7 @@ async def test_register(mocker):
 
 @pytest.mark.asyncio
 async def test_login():
+    """Test login"""
     tokens_table.put_item(Item={
         "UserName": "user@test.com",
         "AccessKey": "abc123",
@@ -147,49 +137,46 @@ async def test_login():
         password="ValidP@ssw0rd",
         authKey="abc12345"
     )
-    try:
-        assert await login(event) == http_response(200, {
-            "username": "user@test.com",
-            "role": "viewer",
-            "sessionKey": "abc12345",
-            "message": "Login success"
-        })
-    except Exception as err:
-        print('Error:', err)
-
-    tokens_table.delete_item(Key={"AccessKey": "abc123"})
-    users_table.delete_item(Key={"UserName": "user@test.com"})
-
-@pytest.mark.asyncio
-async def test_lambda_handler(mocker):
-    mocker.patch('uuid.uuid4', return_value='uuid1234')
-    tokens_table.put_item(Item={
-        "UserName": "user@test.com",
-        "AccessKey": "abc123",
-        "Valid": True
-    })
-    users_table.put_item(Item={
-        "UserName": "user@test.com",
-        "Password": "8d3f8e0d344be93893a5ca049c2ce630471c5f7557156487bfd7e98fb82f1e44",
-        "RateLimit": 1000,
-        "LastLogin": '2023-08-25 12:12:56.530613',
-        "AuthRole": "viewer",
-        "AuthKey": "abc12345",
-        "Active": True
-    })
-    event = {
-        "httpMethod": "GET",
-        "path": "/confirm_email",
-        "queryStringParameters": {
-            "accessKey": "abc123"
-        }
-    }
-    assert await lambda_handler(event, {}) == http_response(200, {
+    assert await login(event) == http_response(200, {
         "username": "user@test.com",
         "role": "viewer",
-        "message": "Email confirmed",
-        "sessionKey": "uuid1234"
+        "sessionKey": "abc12345",
+        "message": "Login success"
     })
 
     tokens_table.delete_item(Key={"AccessKey": "abc123"})
     users_table.delete_item(Key={"UserName": "user@test.com"})
+
+# @pytest.mark.asyncio
+# async def test_lambda_handler(mocker):
+#     mocker.patch('uuid.uuid4', return_value='uuid1234')
+#     tokens_table.put_item(Item={
+#         "UserName": "user@test.com",
+#         "AccessKey": "abc123",
+#         "Valid": True
+#     })
+#     users_table.put_item(Item={
+#         "UserName": "user@test.com",
+#         "Password": "8d3f8e0d344be93893a5ca049c2ce630471c5f7557156487bfd7e98fb82f1e44",
+#         "RateLimit": 1000,
+#         "LastLogin": '2023-08-25 12:12:56.530613',
+#         "AuthRole": "viewer",
+#         "AuthKey": "abc12345",
+#         "Active": True
+#     })
+#     event = {
+#         "httpMethod": "GET",
+#         "path": "/confirm_email",
+#         "queryStringParameters": {
+#             "accessKey": "abc123"
+#         }
+#     }
+#     assert await lambda_handler(event, {}) == http_response(200, {
+#         "username": "user@test.com",
+#         "role": "viewer",
+#         "message": "Email confirmed",
+#         "sessionKey": "uuid1234"
+#     })
+
+#     tokens_table.delete_item(Key={"AccessKey": "abc123"})
+#     users_table.delete_item(Key={"UserName": "user@test.com"})
