@@ -1,10 +1,15 @@
+"""
+Test dynamodb_tables
+"""
+
 from datetime import datetime
 from decimal import Decimal
 
-from dynamodb_tables import get_users_table, get_tokens_table, get_sessions_table
-from dynamodb_tables import get_queries_table, get_flagged_docs_table
+from app.dynamodb_tables import get_users_table, get_tokens_table, get_sessions_table
+from app.dynamodb_tables import get_queries_table, get_flagged_docs_table
 
 def test_get_users_table():
+    """get_users_table"""
     table = get_users_table("Users")
     login_time = str(datetime.utcnow()),
     table.put_item(Item={
@@ -32,6 +37,7 @@ def test_get_users_table():
     table.delete_item(Key={"UserName": "user@test.com"})
 
 def test_get_tokens_table():
+    """Test get_tokens_table"""
     table = get_tokens_table("Tokens")
     table.put_item(Item={
         "AccessKey": "abc123",
@@ -50,6 +56,7 @@ def test_get_tokens_table():
     table.delete_item(Key={"AccessKey": "abc123"})
 
 def test_get_sessions_table():
+    """Test get_sessions_table"""
     table = get_sessions_table("Sessions")
     table.put_item(Item={
         "UserName": "user@test.com",
@@ -68,6 +75,7 @@ def test_get_sessions_table():
     table.delete_item(Key={"SessionKey": "abc123"})
 
 def test_get_queries_table():
+    """Test get_queries_table"""
     table = get_queries_table("Queries")
     table.put_item(Item={
         "QueryId": 1234,
@@ -90,6 +98,7 @@ def test_get_queries_table():
     table.delete_item(Key={"QueryId": 1234})
 
 def test_get_flagged_docs_table():
+    """Test get_flagged_docs_table"""
     table = get_flagged_docs_table("Flagged")
     table.put_item(Item={
         "FlaggedId": 1234,

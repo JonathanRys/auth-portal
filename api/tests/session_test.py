@@ -3,10 +3,10 @@ Test for session module
 """
 
 import pytest
-import config
+from app import config
 
-from session import new_session, validate_session_key, invalidate_session
-from dynamodb_tables import get_sessions_table, get_users_table
+from app.session import new_session, validate_session_key, invalidate_session
+from app.dynamodb_tables import get_sessions_table, get_users_table
 
 sessions_table = get_sessions_table(config.SESSIONS_TABLE)
 users_table = get_users_table(config.USERS_TABLE)
@@ -50,7 +50,7 @@ def test_validate_session_key(mocker):
     session_key = "uuid1234"
 
     # Test it returns None when no value has been set
-    assert validate_session_key(session_key) == None
+    assert validate_session_key(session_key) is None
 
     # Test active records return properly
     sessions_table.put_item(Item={
@@ -66,7 +66,7 @@ def test_validate_session_key(mocker):
         UpdateExpression="SET Active = :active",
         ExpressionAttributeValues={":active": False}
     )
-    assert validate_session_key(session_key) == None
+    assert validate_session_key(session_key) is None
 
     # clean up
     sessions_table.delete_item(Key={"SessionKey": session_key})

@@ -5,22 +5,22 @@ Test api methods
 import pytest
 
 from fastapi.exceptions import HTTPException
-from ..app import config
-from ..app.api import confirm_email, \
+from app import config
+from app.api import confirm_email, \
                 reset_password, \
                 register, \
                 change_password, \
                 login
 
-from ..app.models import EmailConfirmation, \
+from app.models import EmailConfirmation, \
                 ResetPassword, \
                 UpdatePassword, \
                 NewUser, \
                 ExistingUser
 
-from ..app.dynamodb_tables import get_users_table, get_tokens_table
+from app.dynamodb_tables import get_users_table, get_tokens_table
 
-from ..app.util import http_response
+from app.util import http_response
 
 users_table = get_users_table(config.USERS_TABLE)
 tokens_table = get_tokens_table(config.TOKENS_TABLE)
@@ -56,8 +56,10 @@ async def test_confirm_email(mocker):
     assert await confirm_email(event) == http_response(200, {
         "username": "user@test.com",
         "role": "viewer",
-        "message": "Email confirmed",
-        "sessionKey": "uuid1234"
+        "authKey": "uuid1234",
+        "sessionKey": "uuid1234",
+        "message": "Email confirmed"
+        
     })
 
     tokens_table.delete_item(Key={"AccessKey": "abc123"})
@@ -116,8 +118,9 @@ async def test_register(mocker):
     tokens_table.delete_item(Key={"AccessKey": "uuid1234"})
 
 @pytest.mark.asyncio
-async def test_login():
+async def test_login(mocker):
     """Test login"""
+    mocker.patch('uuid.uuid4', return_value='uuid1234')
     tokens_table.put_item(Item={
         "UserName": "user@test.com",
         "AccessKey": "abc123",
@@ -140,7 +143,8 @@ async def test_login():
     assert await login(event) == http_response(200, {
         "username": "user@test.com",
         "role": "viewer",
-        "sessionKey": "abc12345",
+        "authKey": "abc12345",
+        "sessionKey": "uuid1234",
         "message": "Login success"
     })
 

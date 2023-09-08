@@ -4,6 +4,7 @@ API controllers
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from botocore.exceptions import ClientError
 
 from . import logger
 from .util import http_response
@@ -46,14 +47,15 @@ app.add_middleware(
 
 @app.get('/')
 async def home():
+    """Default route """
     return {"test": "success"}
 
 # Handler methods
 @app.post("/confirm_email", response_model=LoggedInUser)
 async def confirm_email(user: EmailConfirmation):
     """Confirm registration email endpoint (GET)"""
-    accessKey = user.accessKey
-    username = validate_access_key(accessKey)
+    access_key = user.accessKey
+    username = validate_access_key(access_key)
     if username:
         await set_user_role(username, 'viewer')
         session_key = await new_session(username)
@@ -119,7 +121,7 @@ async def register(new_user: NewUser):
     try:
         create_new_user(username, password)
         send_registration_email(username)
-    except Exception as err:
+    except ClientError as err:
         logger.error('Error registering user %s: %s', username, err)
         return http_response(500, {"message": 'Server error'})
 
@@ -143,14 +145,17 @@ async def login(user: ExistingUser):
     
     user = get_user(username)
     pw_hash = user.get('Password')
-    if compare_to_hash(password, pw_hash):
+
+    print(f'Check {password} == {pw_hash}')
+
+    if not compare_to_hash(password, pw_hash):
         # log pw attempts and lock account for 10 min if failed more than 5 times
         logger.warning('Faild password attempt by %s', username)
         return http_response(401, {"message": "Invalid username or password attempt."})
 
     try:
         update_timestamp(username)
-    except Exception as err:
+    except ClientError as err:
         logger.warning('Error updating user %s: %s', username, err)
         return http_response(500, {"message": 'Server Error'})
     

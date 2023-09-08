@@ -3,6 +3,7 @@ Tokens table tools
 """
 
 import uuid
+from datetime import datetime
 
 import ssl
 import smtplib
@@ -23,8 +24,8 @@ def validate_access_key(access_key: str) -> str:
         username = response.get('Item', {}).get('UserName')
         token_table.update_item(
             Key={"AccessKey": access_key},
-            UpdateExpression="SET Valid = :valid",
-            ExpressionAttributeValues={":valid": True}
+            UpdateExpression="SET Valid = :valid, LastModified = :last_modified",
+            ExpressionAttributeValues={":valid": True, ":last_modified": str(datetime.utcnow())}
         )
 
         return username
@@ -35,7 +36,13 @@ def get_registration_link(username: str) -> str:
     if not username:
         return ''
     access_key = str(uuid.uuid4())
-    token_table.put_item(Item={"UserName": username, "AccessKey": access_key, "Valid": False})
+    token_table.put_item(Item={
+        "UserName": username,
+        "AccessKey": access_key,
+        "Valid": False,
+        "Created": str(datetime.utcnow()),
+        "LastModified": str(datetime.utcnow())
+    })
     return f'{config.API_URL}/confirm_email?accessKey={access_key}'
 
 def get_reset_link(username: str) -> str:
@@ -43,10 +50,12 @@ def get_reset_link(username: str) -> str:
     access_key = str(uuid.uuid4())
     token_table.update_item(
             Key={"AccessKey": access_key},
-            UpdateExpression="SET Valid = :valid",
-            ExpressionAttributeValues={":valid": False}
+            UpdateExpression="SET Valid = :valid, UserName = :username, LastModified = :last_modified",
+            ExpressionAttributeValues={
+                ":valid": False, ":username": username, ":last_modified": str(datetime.utcnow())
+            }
         )
-    return f'{config.API_URL}/reset_password?accessKey={access_key}'
+    return f'{config.API_URL}/update_password?accessKey={access_key}'
 
 def send_reset_password_email(recipient: str) -> bool:
     """Sends a password reset email to the recipient"""

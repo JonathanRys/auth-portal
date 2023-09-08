@@ -5,6 +5,8 @@ import re
 import hashlib
 from datetime import datetime
 
+from botocore.exceptions import ClientError
+
 from . import logger
 from . import config
 from .util import http_response
@@ -24,7 +26,9 @@ def is_valid_user(username: str) -> bool:
 
 def compare_to_hash(password: str, user_hash: str):
     """Compares a str against a hash"""
-    pw_hash = str(hashlib.sha3_256(password.encode()).hexdigest())
+    print('user hash:', user_hash, type(user_hash))
+    pw_hash = hashlib.sha3_256(password.encode()).hexdigest()
+    print(f'?? {pw_hash} == {user_hash}')
     return pw_hash == user_hash
 
 def validate_auth_key(username: str, auth_key: str):
@@ -38,7 +42,7 @@ def validate_auth_key(username: str, auth_key: str):
 
 def create_new_user(username: dict, password: str):
     """Create a new user record"""
-    pw_hash = str(hashlib.sha3_256(password.encode()).hexdigest())
+    pw_hash = hashlib.sha3_256(password.encode()).hexdigest()
     user_table.put_item(Item={"UserName": username, "Password": pw_hash})
 
 def get_user(username: str) -> dict:
@@ -54,7 +58,7 @@ def update_timestamp(username: str):
             UpdateExpression="SET LastLogin = :last_login",
             ExpressionAttributeValues={":last_login": str(datetime.utcnow())}
         )
-    except Exception as err:
+    except ClientError as err:
         logger.warning('Error updating user %s: %s', username, err)
         return http_response(500, {"message": 'Server Error'})
 
@@ -80,7 +84,7 @@ async def set_user_role(username: str, role: str):
 
 async def update_password(username: str, new_password: str):
     """Update the user's password"""
-    pw_hash = str(hashlib.sha3_256(new_password.encode()).hexdigest())
+    pw_hash = hashlib.sha3_256(new_password.encode()).hexdigest()
     return user_table.update_item(
         Key={"UserName": username},
         UpdateExpression="SET Password = :password",

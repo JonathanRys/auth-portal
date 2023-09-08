@@ -1,12 +1,13 @@
 """Tests for the user module"""
 
-import pytest
 import hashlib
 
-import config
-from dynamodb_tables import get_users_table
+import pytest
 
-from user import get_user, \
+from app import config
+from app.dynamodb_tables import get_users_table
+
+from app.user import get_user, \
                 update_timestamp, \
                 validate_auth_key, \
                 is_valid_user, \
@@ -21,26 +22,26 @@ users_table = get_users_table(config.USERS_TABLE)
 
 def test_is_valid_password():
     """Test is_valid_password"""
-    assert is_valid_password('thi$shouldntw0rk') == False
-    assert is_valid_password('ThisShouldntw0rk') == False
-    assert is_valid_password('Thi$Shouldntwork') == False
-    assert is_valid_password('thi$w0ntwork') == False
-    assert is_valid_password('Nf6$') == False
-    assert is_valid_password('THI$W0NTWORK') == False
-    assert is_valid_password('thiswontwork') == False
-    assert is_valid_password('Thi$Shouldw0rk') == True
+    assert is_valid_password('thi$shouldntw0rk') is False
+    assert is_valid_password('ThisShouldntw0rk') is False
+    assert is_valid_password('Thi$Shouldntwork') is False
+    assert is_valid_password('thi$w0ntwork') is False
+    assert is_valid_password('Nf6$') is False
+    assert is_valid_password('THI$W0NTWORK') is False
+    assert is_valid_password('thiswontwork') is False
+    assert is_valid_password('Thi$Shouldw0rk') is True
 
 def test_is_valid_user():
     """Test is_valid_user"""
-    assert is_valid_user('TestUser') == False
-    assert is_valid_user('Testgmail.com') == False
-    assert is_valid_user('testuser@gmail.com') == True
+    assert is_valid_user('TestUser') is False
+    assert is_valid_user('Testgmail.com') is False
+    assert is_valid_user('testuser@gmail.com') is True
 
 def test_compare_to_hash():
     """Test compare_to_hash"""
     password = 'testpass'
-    pw_hash = hashlib.sha3_256(password.encode()).hexdigest(),
-    assert compare_to_hash(password, pw_hash[0])
+    pw_hash = hashlib.sha3_256(password.encode()).hexdigest()
+    assert compare_to_hash(password, pw_hash)
 
 @pytest.fixture(autouse=True)
 def create_records():
@@ -50,7 +51,7 @@ def create_records():
 
     users_table.put_item(Item={
         "UserName": username,
-        "Password": str(hashlib.sha3_256(password.encode()).hexdigest()),
+        "Password": hashlib.sha3_256(password.encode()).hexdigest(),
         "AuthKey": "abc123",
         "AuthRole": 'viewer',
         "Active": True
@@ -75,7 +76,7 @@ def test_create_new_user():
     response = users_table.get_item(Key={"UserName": username}).get('Item', {})
 
     assert response.get('UserName') == username
-    assert response.get('Password') == str(hashlib.sha3_256(password.encode()).hexdigest())
+    assert response.get('Password') == hashlib.sha3_256(password.encode()).hexdigest()
     assert response.get('AuthKey') is None
     assert response.get('Active') is None
 
@@ -90,7 +91,7 @@ def test_get_user():
     expected_result = {
         'Active': True,
         "AuthKey": "abc123",
-        'Password': str(hashlib.sha3_256(password.encode()).hexdigest()),
+        'Password': hashlib.sha3_256(password.encode()).hexdigest(),
         "AuthRole": 'viewer',
         'UserName': 'test@gmail.com'
     }
@@ -150,11 +151,11 @@ async def test_update_password():
     password = "Super5e(ret"
 
     response = users_table.get_item(Key={"UserName": username}).get('Item', {})
-    assert response.get('Password') == str(hashlib.sha3_256("P@ssw0rd".encode()).hexdigest())
+    assert response.get('Password') == hashlib.sha3_256("P@ssw0rd".encode()).hexdigest()
 
     response = await update_password(username, password)
     response_status = response.get('ResponseMetadata', {}).get('HTTPStatusCode')
     assert response_status == 200
 
     response = users_table.get_item(Key={"UserName": username}).get('Item', {})
-    assert response.get('Password') == str(hashlib.sha3_256(password.encode()).hexdigest())
+    assert response.get('Password') == hashlib.sha3_256(password.encode()).hexdigest()

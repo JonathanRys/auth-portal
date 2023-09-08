@@ -3,6 +3,7 @@ Sessions table tools
 """
 
 import uuid
+from datetime import datetime
 
 from . import config
 from .user import get_user, set_user_auth
@@ -22,15 +23,17 @@ async def new_session(username: str):
         if response.get('Active'):
             sessions_table.update_item(
                 Key={"SessionKey": session_key},
-                UpdateExpression="SET Active = :active",
-                ExpressionAttributeValues={":active": False}
+                UpdateExpression="SET Active = :active, LastModified = :last_modified",
+                ExpressionAttributeValues={":active": False, ":last_modified": str(datetime.utcnow())},
             )
     
     session_key = str(uuid.uuid4())
     sessions_table.put_item(Item={
         "SessionKey": session_key,
         "UserName": username,
-        "Active": True
+        "Active": True,
+        "Created": str(datetime.utcnow()),
+        "LastModified": str(datetime.utcnow())
     })
 
     await set_user_auth(username, session_key)
@@ -56,6 +59,6 @@ def invalidate_session(session_key: str):
     if response.get('Active'):
         sessions_table.update_item(
             Key={"SessionKey": session_key},
-            UpdateExpression="SET Active = :active",
-            ExpressionAttributeValues={":active": False}
+            UpdateExpression="SET Active = :active, LastModified = :last_modified",
+            ExpressionAttributeValues={":active": False, ":last_modified": str(datetime.utcnow())}
         )
