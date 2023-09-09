@@ -12,10 +12,10 @@ import NotFound from './components/NotFound';
 import './App.css';
 import { getCookie } from './util/cookie';
 import { Routes, Route, Navigate } from 'react-router-dom'
-
+import { Props } from './types/types'
 const user = getCookie('user');
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children }: Props) => {
   const user = getCookie('user');
   const role = getCookie('role');
   const authKey = getCookie('authKey');
@@ -27,7 +27,7 @@ const ProtectedRoute = ({ children }) => {
   if (!['viewer', 'editor', 'admin'].includes(role)) {
     return <Navigate to="/" />;
   }
-  return children
+  return <>children</>
 }
 
 function App() {

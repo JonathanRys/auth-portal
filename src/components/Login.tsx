@@ -16,7 +16,6 @@ const Login = () => {
 
     const [user, setUser] = useState('');
     const [password, setPassword] = useState('');
-    const [authKey, setAuthKey] = useState('');
 
     const [errMsg, setErrMsg] = useState('');
     // temp until navigation is set up
@@ -51,8 +50,6 @@ const Login = () => {
                 const _role = response?.data?.role
                 const _authKey = response?.data?.authKey
                 const _sessionKey = response?.data?.sessionKey
-
-                setAuthKey(response?.data?.authKey);
 
                 setAuth({ user, _role, _sessionKey, _authKey });
                 setCookie('user', user);
