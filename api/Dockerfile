@@ -16,9 +16,5 @@ RUN python -m pip install --no-cache-dir --upgrade -r /code/requirements.txt
 # Set the workdir
 WORKDIR /code
 
-ENV AWS_REGION=us-east-1
-ENV AWS_DEFAULT_REGION=us-east-1
-
 # Start the app
 CMD ["uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "80"]
-# CMD uvicorn app.api:app --host 0.0.0.0 --port 80

@@ -1,20 +1,23 @@
-# FROM node:16.17.1-alpine3.16 as build
+# Build web app
 FROM oven/bun as build
 
 # Set the workdir
 WORKDIR /usr/app
 
 # Copy the app
-COPY . /usr/app
+COPY ./ /usr/app/
 
-RUN mkdir /usr/app/dist
-
+# Install dependencies
 RUN bun install
-RUN bun build ./src/index.tsx --outdir=/usr/app/dist/
-#RUN npm ci
-#RUN npm run build
 
+# Build the app
+RUN bun build ./src/index.tsx --outdir=/usr/app/build/
+
+
+# Configure web server
 FROM nginx:1.23.1-alpine
 EXPOSE 80
+
+# Copy files
 COPY ./docker/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /usr/app/dist /usr/share/nginx/html
+COPY --from=build /usr/app/build/. /usr/share/nginx/html/
