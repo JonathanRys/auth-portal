@@ -1,0 +1,11 @@
+.aws
+.coverage
+.coverage.*
+.DS_Store
+.env
+.git
+.pytest_cache
+.vscode
+api
+build
+node_modules

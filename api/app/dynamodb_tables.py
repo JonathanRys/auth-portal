@@ -6,7 +6,7 @@ import boto3
 from . import config
 
 # connect to DB
-dynamodb = boto3.resource('dynamodb')
+dynamodb = boto3.resource('dynamodb', region_name=config.AWS_REGION)
 
 def get_users_table(table_name: str = config.USERS_TABLE) -> dynamodb.Table:
     """Creates the User table if it doesn't exist and returns the client"""

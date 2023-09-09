@@ -1,0 +1,8 @@
+__pycache__
+.pytest_cache
+.venv
+pytest.ini
+pyproject.toml
+setup.py
+tests
+tox.ini

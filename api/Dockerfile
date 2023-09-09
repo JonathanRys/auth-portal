@@ -5,19 +5,20 @@ FROM python:3.9
 WORKDIR /code
 
 # Set non-private env vars
-ENV PYTHON_PATH "${PYTHON_PATH}:/home/app"
+ENV PYTHON_PATH "$PYTHON_PATH:/code/app"
 
-# Copy requirements file
-COPY ./requirements.txt /code/requirements.txt
+# Copy code
+COPY . /code
 
 # Install requirements
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
-
-# Copy the code
-COPY ./app /code/app
+RUN python -m pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 # Set the workdir
-WORKDIR /code/app
+WORKDIR /code
+
+ENV AWS_REGION=us-east-1
+ENV AWS_DEFAULT_REGION=us-east-1
 
 # Start the app
-CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "80"]
+# CMD uvicorn app.api:app --host 0.0.0.0 --port 80
