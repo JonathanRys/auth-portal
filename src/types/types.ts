@@ -2,5 +2,5 @@ import { ReactNode } from 'react';
 
 export type Props = {
     children: ReactNode,
-    defaultElement?: ReactNode
+    defaultElement?: JSX.Element
 }

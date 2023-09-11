@@ -8,7 +8,6 @@ import { Navigate } from 'react-router-dom';
 const LOGIN_URL = '/login';
 
 const Login = () => {
-    console.log('login loading 1')
     // @ts-ignore
     const { setAuth } = useContext(AuthContext);
 
@@ -29,7 +28,6 @@ const Login = () => {
     useEffect(() => {
         setErrMsg('');
     }, [username, password])
-    console.log('login loading 2')
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();

@@ -7,6 +7,10 @@ import { Outlet } from 'react-router-dom';
 
 import ProtectedElement from '../util/ProtectedElement';
 
+const Spacer = () => {
+    return <div></div>
+}
+
 const Layout = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const menuClickHandler = () => {
@@ -16,9 +20,9 @@ const Layout = () => {
     return (
         <>
             <header className="page-title">
-                <ProtectedElement><div>{/* Spacer for flex layout */}</div></ProtectedElement>
+                <ProtectedElement defaultElement={<Spacer/>}><div>{/* Spacer for flex layout */}</div></ProtectedElement>
                 <div>Phys GPT</div>
-                <ProtectedElement>
+                <ProtectedElement defaultElement={<Spacer/>}>
                     <div className="menu-container">
                         <FontAwesomeIcon className="menu-icon" onClick={menuClickHandler} icon={faBars} />
                         <div className={menuOpen ? '' : 'hidden'} >
