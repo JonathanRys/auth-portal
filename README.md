@@ -83,9 +83,8 @@ Add this line to your [hosts file](https://www.hostinger.com/tutorials/how-to-ed
 ## Config
 
 ```python
-
-SERVICE_EMAIL
-EMAIL_PW
+SERVICE_EMAIL = registration@physgpt.com
+EMAIL_PW = <SECRET>
 
 APP_ORIGIN = "http://local.host"
 

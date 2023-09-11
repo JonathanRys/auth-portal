@@ -1,3 +1,4 @@
+import './App.css';
 import Registration from './components/Registration';
 import Layout from './components/Layout';
 import Login from './components/Login';
@@ -9,33 +10,17 @@ import ConfirmEmail from './components/ConfirmEmail'
 import PhysGPT from './components/PhysGPT';
 import Unauthorized from './components/Unauthorized';
 import NotFound from './components/NotFound';
-import './App.css';
+import ProtectedRoute from './util/ProtectedRoute';
 import { getCookie } from './util/cookie';
-import { Routes, Route, Navigate } from 'react-router-dom'
-import { Props } from './types/types'
-const user = getCookie('user');
-
-const ProtectedRoute = ({ children }: Props) => {
-  const user = getCookie('user');
-  const role = getCookie('role');
-  const authKey = getCookie('authKey');
-  // Check authentication
-  if (!(user && role && authKey)) {
-    return <Navigate to="/" />;
-  }
-  // Check authorization
-  if (!['viewer', 'editor', 'admin'].includes(role)) {
-    return <Navigate to="/" />;
-  }
-  return <>{children}</>
-}
+import { Routes, Route } from 'react-router-dom'
+const username = getCookie('username');
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={ <Layout /> }>
         <Route path="*" element={ <NotFound /> } />
-        <Route path="/" element={ user ? <Login /> : <Registration /> } />
+        <Route path="/" element={ username ? <Login /> : <Registration /> } />
         <Route path='login' element={ <Login /> } />
         <Route path='register' element={ <Registration /> } />
         <Route path='set_new_password' element={ <SetNewPassword /> } />

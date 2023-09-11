@@ -25,6 +25,12 @@ class UpdatePassword(BaseModel):
     password: str
     newPassword: str
 
+class SetNewPassword(BaseModel):
+    """Class for changing the password"""
+    username: str
+    accessKey: str
+    password: str
+
 class NewUser(BaseModel):
     """Data class for register endpoint"""
     username: str

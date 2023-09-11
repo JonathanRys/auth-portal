@@ -16,7 +16,7 @@ const Registration = () => {
     const userRef = useRef<HTMLInputElement>();
     const errRef = useRef<HTMLParagraphElement>();
 
-    const [user, setUser] = useState('');
+    const [username, setUsername] = useState('');
     const [userValid, setUserValid] = useState(false);
     const [userFocus, setUserFocus] = useState(false);
 
@@ -36,21 +36,21 @@ const Registration = () => {
     }, [])
 
     useEffect(() => {
-        setUserValid(isValidEmail(user))
-    }, [user])
+        setUserValid(isValidEmail(username))
+    }, [username])
 
     useEffect(() => {
         setPasswordValid(isValidPassword(password))
         setMatchValid(password === pwMatch)
     }, [password, pwMatch])
 
-    useEffect(() => setErrMsg(''), [user, password, pwMatch])
+    useEffect(() => setErrMsg(''), [username, password, pwMatch])
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         switch (true) {
         case !userValid:
-        case !isValidEmail(user):
+        case !isValidEmail(username):
             setErrMsg('Invalid username.');
             return;
         case !passwordValid:
@@ -64,7 +64,7 @@ const Registration = () => {
             try{
                 const response = await axios.post(REGISTER_URL, 
                     {
-                        "username": user,
+                        "username": username,
                         "password": password
                     }, {
                         withCredentials: true // send cookies
@@ -78,14 +78,14 @@ const Registration = () => {
                 const authKey = response?.data?.authKey;
                 const role = response?.data?.role;
 
-                setAuth({ user, role, authKey });
-                setCookie('user', user);
+                setAuth({ username, role, authKey });
+                setCookie('username', username);
                 setCookie('role', role);
                 setCookie('authKey', undefined); // Set this when email is confirmed
                 
                 setSuccess(true);
                 // clear inputs
-                setUser('');
+                setUsername('');
                 setPassword('');
                 setPwMatch('');
                 return;
@@ -120,20 +120,20 @@ const Registration = () => {
                         <label htmlFor="username">
                             Email:
                             <span className={userValid ? 'valid' : 'hidden'}><FontAwesomeIcon icon={faCheck} /></span>
-                            <span className={userValid || !user ? 'hidden' : 'invalid'}><FontAwesomeIcon icon={faTimes} /></span>
+                            <span className={userValid || !username ? 'hidden' : 'invalid'}><FontAwesomeIcon icon={faTimes} /></span>
                         </label>
                         <input
                             type="email"
                             id="username"
                             ref={userRef}
-                            onChange={(e) => setUser(e.target.value)}
+                            onChange={(e) => setUsername(e.target.value)}
                             required
                             aria-invalid={userValid ? "false" : "true"}
                             aria-describedby="uidnote"
                             onFocus={() => setUserFocus(true)}
                             onBlur={() => setUserFocus(false)}
                         />
-                        <p id="uidnote" className={userFocus && user && !userValid ? 'instructions'  : 'aria-hidden'}>
+                        <p id="uidnote" className={userFocus && username && !userValid ? 'instructions'  : 'aria-hidden'}>
                             <FontAwesomeIcon icon={faInfoCircle} />
                             Please enter a valid email address.
                         </p>

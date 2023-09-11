@@ -8,13 +8,14 @@ import { Navigate } from 'react-router-dom';
 const LOGIN_URL = '/login';
 
 const Login = () => {
+    console.log('login loading 1')
     // @ts-ignore
     const { setAuth } = useContext(AuthContext);
 
     const userRef = useRef<HTMLInputElement>();
     const errRef = useRef<HTMLParagraphElement>();
 
-    const [user, setUser] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
     const [errMsg, setErrMsg] = useState('');
@@ -27,16 +28,18 @@ const Login = () => {
 
     useEffect(() => {
         setErrMsg('');
-    }, [user, password])
+    }, [username, password])
+    console.log('login loading 2')
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        console.log('SUBMITTING')
 
         try {
             try {
                 const response = await axios.post(LOGIN_URL, 
                     {
-                        "username": user,
+                        "username": username,
                         "password": password
                     }, {
                         withCredentials: true
@@ -51,8 +54,8 @@ const Login = () => {
                 const _authKey = response?.data?.authKey
                 const _sessionKey = response?.data?.sessionKey
 
-                setAuth({ user, _role, _sessionKey, _authKey });
-                setCookie('user', user);
+                setAuth({ username, _role, _sessionKey, _authKey });
+                setCookie('username', username);
                 setCookie('role', _role);
                 if (_authKey) {
                     setCookie('authKey', _authKey);
@@ -64,7 +67,7 @@ const Login = () => {
                 console.log('error', e);
             }
 
-            setUser('');
+            setUsername('');
             setPassword('');
             setSuccess(true);
         } catch (e) {
@@ -101,8 +104,8 @@ const Login = () => {
                             type="email"
                             id="username"
                             ref={userRef}
-                            onChange={e => setUser(e.target.value)}
-                            value={user}
+                            onChange={e => setUsername(e.target.value)}
+                            value={username}
                             required
                         />
                         <label htmlFor="password">Password:</label>
@@ -113,7 +116,7 @@ const Login = () => {
                             value={password}
                             required
                         />
-                        <button disabled={!user || !password ? true : false}>Sign In</button>
+                        <button disabled={!username || !password ? true : false}>Sign In</button>
                         <div className="login-links">
                             <p>
                                 Need an account?<br/>

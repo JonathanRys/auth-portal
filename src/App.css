@@ -23,7 +23,7 @@ header {
   -webkit-backgroud-clip: text;
   -webkit-text-fill-color: transparent;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   padding: 1.5rem 0;
   font-size: 2rem;
   font-weight: bold;
@@ -77,9 +77,15 @@ button {
   padding: 0.5rem;
   cursor: pointer;
 }
+
 button:disabled {
   color:#bbb;
   cursor: default;
+}
+
+hr {
+  width: 100%;
+  margin-top: 1.5rem;
 }
 
 .aria-hidden {
@@ -133,6 +139,38 @@ button:disabled {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
+}
+
+.menu-container {
+  padding: 0 2rem;
+}
+
+.menu-icon {
+  color: #302a2a;
+}
+
+.menu-background {
+  border: 1px solid #777;
+  border-radius: 0.5rem;
+  background-color: rgba(255,255,255,0.9);
+  margin: 0.5rem;
+  position: absolute;
+  font-size: 1.25rem;
+  right: 0;
+  padding: 0.5rem 2rem;
+}
+
+.menu-items {
+  list-style: none;
+  padding: 0
+}
+
+.menu-items > a {
+  text-decoration: none;
+}
+
+.menu-items > a > li {
+  margin: 1rem 0;
 }
 
 @media screen and (min-width: 600px) {

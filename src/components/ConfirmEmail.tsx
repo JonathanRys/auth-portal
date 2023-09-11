@@ -35,7 +35,7 @@ const ConfirmEmail = () => {
                     'authKey': response?.data?.authKey
                 });
 
-                setCookie('user', response?.data?.username);
+                setCookie('username', response?.data?.username);
                 setCookie('role', response?.data?.role);
                 setCookie('authKey', response?.data?.authKey);
                 setCookie('sessionKey', response?.data?.sessionKey);

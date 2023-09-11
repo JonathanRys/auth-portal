@@ -13,7 +13,7 @@ const Logout = () => {
 
     useEffect(() => {
         const logout = async () => {
-            const username: string = auth.user || getCookie('user');
+            const username: string = auth.username || getCookie('username');
             const authKey: string = auth.authKey || getCookie('authKey');
 
             const response = await axios.post(LOGOUT_URL,
@@ -26,7 +26,7 @@ const Logout = () => {
             );
             setAuth({ 'user': response?.data?.username })
             // Clear cookies
-            setCookie('user', null);
+            setCookie('username', null);
             setCookie('authKey', null);
             setCookie('role', null);
             setCookie('sessionKey', null);

@@ -76,7 +76,7 @@ async def set_user_role(username: str, role: str):
         ExpressionAttributeValues={":role": role}
     )
 
-async def update_password(username: str, new_password: str):
+async def update_user_password(username: str, new_password: str):
     """Update the user's password"""
     pw_hash = hashlib.sha3_256(new_password.encode()).hexdigest()
     return user_table.update_item(

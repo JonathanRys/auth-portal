@@ -8,7 +8,7 @@ const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }: Props) => {
     const [auth, setAuth] = useState({
-        "user": getCookie('user'),
+        "user": getCookie('username'),
         "role": getCookie('role'),
         "authKey": getCookie('authKey'),
     });
