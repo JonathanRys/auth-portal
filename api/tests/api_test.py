@@ -10,20 +10,25 @@ from app.api import confirm_email, \
                 reset_password, \
                 register, \
                 set_new_password, \
+                update_password, \
                 login
 
 from app.models import EmailConfirmation, \
                 ResetPassword, \
                 UpdatePassword, \
                 NewUser, \
-                ExistingUser
+                ExistingUser, \
+                SetNewPassword
 
-from app.dynamodb_tables import get_users_table, get_tokens_table
+from app.dynamodb_tables import get_users_table, \
+                                get_tokens_table, \
+                                get_sessions_table
 
 from app.util import http_response
 
 users_table = get_users_table(config.USERS_TABLE)
 tokens_table = get_tokens_table(config.TOKENS_TABLE)
+sessions_table = get_sessions_table(config.SESSIONS_TABLE)
 
 @pytest.mark.asyncio
 async def test_confirm_email(mocker):
@@ -72,12 +77,47 @@ async def test_reset_password(mocker):
     mocker.patch('smtplib.SMTP_SSL')
     # @todo, this test should fail
     event = ResetPassword(username="testuser@gmail.com")
-    assert await reset_password(event) == http_response(200, { "message": "Password reset email sent" })
+    assert await reset_password(event) == http_response(200, { "message": "Password reset email sent." })
     tokens_table.delete_item(Key={"AccessKey": "uuid1234"})
 
 @pytest.mark.asyncio
-async def test_set_new_password():
+async def test_set_new_password(mocker):
+    mocker.patch('uuid.uuid4', return_value='uuid1234')
     """Test set_new_password"""
+    tokens_table.put_item(Item={
+        "UserName": "user@test.com",
+        "AccessKey": "abc123",
+        "Valid": True
+    })
+    users_table.put_item(Item={
+        "UserName": "user@test.com",
+        "Password": "1523bc8e0ba72600083dcf5dfb37a8582994183d784a747e3f6fbc963dc882b6",
+        "RateLimit": 1000,
+        "LastLogin": '2023-08-25 12:12:56.530613',
+        "AuthRole": "viewer",
+        "AuthKey": "abc12345",
+        "Active": True
+    })
+    event = SetNewPassword(
+        username="user@test.com",
+        password="OldP@ssw0rd",
+        accessKey="abc123"
+    )
+
+    assert await set_new_password(event) == http_response(200, {
+        "username": "user@test.com",
+        "role": "viewer",
+        "authKey": "abc12345",
+        "sessionKey": "uuid1234",
+        "message": "New password set."
+    })
+    tokens_table.delete_item(Key={"AccessKey": "abc123"})
+    users_table.delete_item(Key={"UserName": "user@test.com"})
+
+@pytest.mark.asyncio
+async def test_update_password(mocker):
+    """Test update_password"""
+    mocker.patch('uuid.uuid4', return_value='uuid1234')
     tokens_table.put_item(Item={
         "UserName": "user@test.com",
         "AccessKey": "abc123",
@@ -95,12 +135,18 @@ async def test_set_new_password():
     event = UpdatePassword(
         username="user@test.com",
         password="OldP@ssw0rd",
-        newPassword="ValidP@ssw0rd"
+        newPassword="NewP@ssw0rd"
     )
 
-    assert await set_new_password(event) == http_response(200, {"UserName": "user@test.com", "message": "Password updated"})
+    assert await update_password(event) == http_response(200, {
+        "username": "user@test.com",
+        "role": "viewer",
+        "authKey": "abc12345",
+        "sessionKey": "uuid1234",
+        "message": "Password updated."})
     tokens_table.delete_item(Key={"AccessKey": "abc123"})
     users_table.delete_item(Key={"UserName": "user@test.com"})
+
 
 @pytest.mark.asyncio
 async def test_register(mocker):
@@ -150,37 +196,3 @@ async def test_login(mocker):
 
     tokens_table.delete_item(Key={"AccessKey": "abc123"})
     users_table.delete_item(Key={"UserName": "user@test.com"})
-
-# @pytest.mark.asyncio
-# async def test_lambda_handler(mocker):
-#     mocker.patch('uuid.uuid4', return_value='uuid1234')
-#     tokens_table.put_item(Item={
-#         "UserName": "user@test.com",
-#         "AccessKey": "abc123",
-#         "Valid": True
-#     })
-#     users_table.put_item(Item={
-#         "UserName": "user@test.com",
-#         "Password": "8d3f8e0d344be93893a5ca049c2ce630471c5f7557156487bfd7e98fb82f1e44",
-#         "RateLimit": 1000,
-#         "LastLogin": '2023-08-25 12:12:56.530613',
-#         "AuthRole": "viewer",
-#         "AuthKey": "abc12345",
-#         "Active": True
-#     })
-#     event = {
-#         "httpMethod": "GET",
-#         "path": "/confirm_email",
-#         "queryStringParameters": {
-#             "accessKey": "abc123"
-#         }
-#     }
-#     assert await lambda_handler(event, {}) == http_response(200, {
-#         "username": "user@test.com",
-#         "role": "viewer",
-#         "message": "Email confirmed",
-#         "sessionKey": "uuid1234"
-#     })
-
-#     tokens_table.delete_item(Key={"AccessKey": "abc123"})
-#     users_table.delete_item(Key={"UserName": "user@test.com"})

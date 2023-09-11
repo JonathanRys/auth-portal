@@ -16,7 +16,7 @@ from app.user import get_user, \
                 set_user_auth, \
                 create_new_user, \
                 set_user_role, \
-                update_password
+                update_user_password
 
 users_table = get_users_table(config.USERS_TABLE)
 
@@ -145,15 +145,15 @@ async def test_set_user_role():
     assert response.get('AuthRole') == 'editor'
 
 @pytest.mark.asyncio
-async def test_update_password():
-    """Test update_password"""
+async def test_update_user_password():
+    """Test update_user_password"""
     username = "test@gmail.com"
     password = "Super5e(ret"
 
     response = users_table.get_item(Key={"UserName": username}).get('Item', {})
     assert response.get('Password') == hashlib.sha3_256("P@ssw0rd".encode()).hexdigest()
 
-    response = await update_password(username, password)
+    response = await update_user_password(username, password)
     response_status = response.get('ResponseMetadata', {}).get('HTTPStatusCode')
     assert response_status == 200
 
