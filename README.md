@@ -83,11 +83,11 @@ Add this line to your [hosts file](https://www.hostinger.com/tutorials/how-to-ed
 ## Config
 
 ```python
-API_URL = "http://local.host"
+
 SERVICE_EMAIL
 EMAIL_PW
 
-APP_ORIGIN = "https://physgpt.com"
+APP_ORIGIN = "http://local.host"
 
 USERS_TABLE = "Users"
 TOKENS_TABLE = "Tokens"

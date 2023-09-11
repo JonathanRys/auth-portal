@@ -33,9 +33,9 @@ from .models import LoggedInUser, \
                 AuthenticatingUser
 
 # Don't import the whole config
-from .config import API_URL
+from .config import APP_ORIGIN
 
-origins = [ API_URL ]
+origins = [ APP_ORIGIN ]
 
 app = FastAPI()
 app.add_middleware(
@@ -184,36 +184,3 @@ async def logout(user: AuthenticatingUser):
     }
 
     return http_response(200, payload)
-
-# # Handler
-# routes = {
-#     "GET": {
-#         "/confirm_email": confirm_email
-#     },
-#     "POST": {
-#         "/login": login,
-#         "/register": register,
-#         "/reset_password": reset_password,
-#         "/set_new_password": set_new_password
-#     }
-# }
-
-# data_types = {
-#     "/confirm_email": EmailConfirmation,
-#     "/login": ExistingUser,
-#     "/register": NewUser,
-#     "/reset_password": ResetPassword,
-#     "/set_new_password": UpdatePassword
-# }
-
-# async def lambda_handler(event: any, context: any):
-#     httpMethod = event.get('httpMethod')
-#     path = event.get('path')
-#     handler = routes.get(httpMethod, {}).get(path)
-#     data_class = data_types[path]
-
-#     if httpMethod == 'GET':
-#         qs_params = event.get('queryStringParameters')
-#         return await handler(data_class(**qs_params))
-#     elif httpMethod == 'POST':
-#         return await handler(data_class(event))

@@ -25,14 +25,14 @@ def test_validate_access_key():
 def test_get_registration_link(mocker):
     """Test get_registration_link"""
     mocker.patch('uuid.uuid4', return_value='uuid1234')
-    expected_result = f'{config.API_URL}/confirm_email?accessKey='
+    expected_result = f'{config.APP_ORIGIN}/confirm_email?accessKey='
     assert get_registration_link("testuser@gmail.com")[:len(expected_result)] == expected_result
     tokens_table.delete_item(Key={"AccessKey": "uuid1234"})
 
 def test_get_reset_link(mocker):
     """Test get_reset_link"""
     mocker.patch('uuid.uuid4', return_value='uuid1234')
-    expected_result = f'{config.API_URL}/set_new_password?accessKey='
+    expected_result = f'{config.APP_ORIGIN}/set_new_password?accessKey='
     assert get_reset_link("testuser@gmail.com")[:len(expected_result)] == expected_result
     tokens_table.delete_item(Key={"AccessKey": "uuid1234"})
 
