@@ -20,7 +20,6 @@ const ConfirmEmail = () => {
     useEffect(() => {
         const confirm = async () => {
             try {
-                console.log('POSTing to', CONFIRM_EMAIL_URL);
                 const response = await axios.post(CONFIRM_EMAIL_URL,
                 {
                     "accessKey": searchParams.get('accessKey')

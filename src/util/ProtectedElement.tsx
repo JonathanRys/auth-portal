@@ -11,13 +11,15 @@ const ProtectedElement = (props: Props) => {
       return <>{props.defaultElement}</> || null;
     } else {
       // validate against server
-    //   console.log('authentication success:', _username, role)
     }
     // Check authorization
     if (!['viewer', 'editor', 'admin'].includes(role)) {
       return <>{props.defaultElement}</> || null;
     }
-    return <>{props.children}</>
+    if (props.children) {
+        return <>{props.children}</>
+    }
+    return <>{props.defaultElement}</>
 }
 
 export default ProtectedElement;

@@ -8,7 +8,7 @@ import { Outlet } from 'react-router-dom';
 import ProtectedElement from '../util/ProtectedElement';
 
 const Spacer = () => {
-    return <div></div>
+    return <div className='spacer'></div>
 }
 
 const Layout = () => {
@@ -25,7 +25,7 @@ const Layout = () => {
     return (
         <div id="background" onClick={clickHandler}>
             <header className="page-title">
-                <ProtectedElement defaultElement={<Spacer/>}><div>{/* Spacer for flex layout */}</div></ProtectedElement>
+                <ProtectedElement defaultElement={<Spacer/>}><Spacer /></ProtectedElement>
                 <div>Phys GPT</div>
                 <ProtectedElement defaultElement={<Spacer/>}>
                     <div className="menu-container" onClick={menuClickHandler}>

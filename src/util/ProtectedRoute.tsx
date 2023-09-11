@@ -12,7 +12,6 @@ const ProtectedRoute = ({ children }: Props) => {
       return <Navigate to="/" />;
     } else {
       // validate against server
-      console.log('authentication success:', _username, role)
     }
     // Check authorization
     if (!['viewer', 'editor', 'admin'].includes(role)) {

@@ -38,6 +38,34 @@ main {
   padding: 3rem 0.6rem;
 }
 
+.input-container {
+  bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  width: 33%;
+  margin-left: 2rem;
+}
+
+.input-container > label {
+  color: #333;
+  margin-bottom: 3px;
+  text-shadow: 1px 1px 1px rgba(255,255,255,0.5),
+  1px -1px 1px rgba(255,255,255,0.5),
+  -1px 1px 1px rgba(255,255,255,0.5),
+  -1px -1px 1px rgba(255,255,255,0.5);
+}
+
+textarea.user-input {
+  background-color: rgba(255,255,255,0.9);
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  max-width: 432px;
+  padding: 0.5rem;
+  width: 100%;
+  word-wrap: break-word;
+}
+
 section {
   display: flex;
   flex-direction: column;
@@ -47,6 +75,20 @@ section {
   padding: 0 1rem 1rem;
   background-color: rgba(255,255,255,0.9);
   border-radius: 0.5rem;
+}
+
+section.user-query,
+section.gpt-reply {
+  margin: 1rem 0;
+}
+
+section.user-query {
+  background-color: rgba(240,240,240,0.9);
+  margin-left: 2rem;
+}
+section.gpt-reply {
+  background-color: rgba(192,255,192,0.9);
+  margin-right: 2rem;
 }
 
 form {
@@ -164,6 +206,9 @@ hr {
   font-size: 1.25rem;
   right: 0;
   
+}
+.spacer {
+  min-width: 3.75rem;
 }
 
 .menu-items {

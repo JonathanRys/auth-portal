@@ -31,7 +31,6 @@ const Login = () => {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        console.log('SUBMITTING')
 
         try {
             try {

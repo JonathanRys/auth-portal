@@ -20,15 +20,12 @@ from app.models import EmailConfirmation, \
                 ExistingUser, \
                 SetNewPassword
 
-from app.dynamodb_tables import get_users_table, \
-                                get_tokens_table, \
-                                get_sessions_table
+from app.dynamodb_tables import get_users_table, get_tokens_table
 
 from app.util import http_response
 
 users_table = get_users_table(config.USERS_TABLE)
 tokens_table = get_tokens_table(config.TOKENS_TABLE)
-sessions_table = get_sessions_table(config.SESSIONS_TABLE)
 
 @pytest.mark.asyncio
 async def test_confirm_email(mocker):
@@ -82,8 +79,8 @@ async def test_reset_password(mocker):
 
 @pytest.mark.asyncio
 async def test_set_new_password(mocker):
-    mocker.patch('uuid.uuid4', return_value='uuid1234')
     """Test set_new_password"""
+    mocker.patch('uuid.uuid4', return_value='uuid1234')
     tokens_table.put_item(Item={
         "UserName": "user@test.com",
         "AccessKey": "abc123",
@@ -146,7 +143,6 @@ async def test_update_password(mocker):
         "message": "Password updated."})
     tokens_table.delete_item(Key={"AccessKey": "abc123"})
     users_table.delete_item(Key={"UserName": "user@test.com"})
-
 
 @pytest.mark.asyncio
 async def test_register(mocker):
