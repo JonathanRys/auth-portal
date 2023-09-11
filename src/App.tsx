@@ -27,7 +27,7 @@ const ProtectedRoute = ({ children }: Props) => {
   if (!['viewer', 'editor', 'admin'].includes(role)) {
     return <Navigate to="/" />;
   }
-  return <>children</>
+  return <>{children}</>
 }
 
 function App() {
