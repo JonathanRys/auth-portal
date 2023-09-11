@@ -11,8 +11,8 @@ COPY ./ /usr/app/
 RUN bun install
 
 # Build the app
+# RUN bunx run build
 RUN bun build ./src/index.tsx --outdir=/usr/app/build/
-
 
 # Configure web server
 FROM nginx:1.23.1-alpine

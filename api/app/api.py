@@ -32,10 +32,10 @@ from .models import LoggedInUser, \
                 ExistingUser, \
                 AuthenticatingUser
 
-origins = [
-    "http://localhost:3000",
-    "http://local.host:3000"
-]
+# Don't import the whole config
+from .config import API_URL
+
+origins = [ API_URL ]
 
 app = FastAPI()
 app.add_middleware(

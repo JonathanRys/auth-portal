@@ -109,7 +109,7 @@ const SetNewPassword = () => {
                             type="password"
                             id="new-password"
                             onChange={e => setNewPassword(e.target.value)}
-                            value={password}
+                            value={newPassword}
                             required
                         />
                         <button disabled={!user || !password || !newPassword ? true : false}>Update Password</button>
