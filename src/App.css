@@ -35,7 +35,6 @@ main {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 100%;
   padding: 3rem 0.6rem;
 }
 
@@ -86,6 +85,10 @@ button:disabled {
 hr {
   width: 100%;
   margin-top: 1.5rem;
+}
+
+#background, #root {
+  height: 100%;
 }
 
 .aria-hidden {
@@ -142,31 +145,47 @@ hr {
 }
 
 .menu-container {
-  padding: 0 2rem;
+  padding-right: 1rem;
 }
 
 .menu-icon {
   color: #302a2a;
+  padding: 1rem;
+  margin: -1rem 0;
+  cursor: pointer;
 }
 
 .menu-background {
   border: 1px solid #777;
   border-radius: 0.5rem;
   background-color: rgba(255,255,255,0.9);
-  margin: 0.5rem;
+  margin-right: 0.75rem;
   position: absolute;
   font-size: 1.25rem;
   right: 0;
-  padding: 0.5rem 2rem;
+  
 }
 
 .menu-items {
   list-style: none;
-  padding: 0
+  margin: 0;
+  padding: 0;
 }
 
 .menu-items > a {
+  border-bottom: 1px solid #777;
+  display: block;
   text-decoration: none;
+  padding: 0.5rem 1rem;
+}
+
+.menu-items > a:last-of-type {
+  border: none;
+}
+
+.menu-items > a:hover {
+  color: #333;
+  -webkit-text-fill-color: #333;
 }
 
 .menu-items > a > li {

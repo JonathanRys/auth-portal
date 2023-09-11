@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, MouseEvent } from 'react';
 
 import { faBars } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -13,23 +13,27 @@ const Spacer = () => {
 
 const Layout = () => {
     const [menuOpen, setMenuOpen] = useState(false);
-    const menuClickHandler = () => {
+    const menuClickHandler = (event: MouseEvent) => {
+        event.stopPropagation();
         setMenuOpen(!menuOpen);
     };
 
+    const clickHandler = () => {
+        setMenuOpen(false);
+    };
+
     return (
-        <>
+        <div id="background" onClick={clickHandler}>
             <header className="page-title">
                 <ProtectedElement defaultElement={<Spacer/>}><div>{/* Spacer for flex layout */}</div></ProtectedElement>
                 <div>Phys GPT</div>
                 <ProtectedElement defaultElement={<Spacer/>}>
-                    <div className="menu-container">
-                        <FontAwesomeIcon className="menu-icon" onClick={menuClickHandler} icon={faBars} />
+                    <div className="menu-container" onClick={menuClickHandler}>
+                        <FontAwesomeIcon className="menu-icon" icon={faBars} />
                         <div className={menuOpen ? '' : 'hidden'} >
                             <div className="menu-background">
                                 <ul className="menu-items">
                                     <a href="/update_password"><li>Change password</li></a>
-                                    <hr/>
                                     <a href="/logout"><li>Logout</li></a>
                                 </ul>
                             </div>
@@ -40,7 +44,7 @@ const Layout = () => {
             <main>
                 <Outlet />
             </main>
-        </>
+        </div>
     )
 }
 
