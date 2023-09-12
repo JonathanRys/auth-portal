@@ -72,12 +72,12 @@ const ResetPassword = () => {
     return (
         <>
             {success ? (
-                <section>
+                <section className="registration">
                     <h1>Password reset email sent</h1>
                     <p>Please check your email for a reset link.</p>
                 </section>
             ) :(
-                <section>
+                <section className="registration">
                     <p
                         ref={errRef} 
                         className={errMsg ? 'error': 'aria-hidden'}

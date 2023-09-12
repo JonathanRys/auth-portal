@@ -110,10 +110,10 @@ const Registration = () => {
     return (
             <>
                 {success ? (
-                    <section>
+                    <section className="registration">
                         <p>Please check your email for a confirmation link.</p>
                     </section>
-                ) : (<section>
+                ) : (<section className="registration">
                     <p ref={errRef} className={errMsg ? 'error' : 'aria-hidden'} aria-live="assertive">{errMsg}</p>
                     <h1>Register</h1>
                     <form onSubmit={handleSubmit}>

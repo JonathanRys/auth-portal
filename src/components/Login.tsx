@@ -78,7 +78,8 @@ const Login = () => {
             } else {
                 setErrMsg('Login failed.');
             }
-            errRef?.current.focus();        
+            errRef?.current.focus();
+            return;
         }
     }
 
@@ -87,7 +88,7 @@ const Login = () => {
             {success ? (
                 <Navigate to="/gpt" />
             ) :(
-                <section>
+                <section className="registration">
                     <p
                         ref={errRef} 
                         className={errMsg ? 'error': 'aria-hidden'}

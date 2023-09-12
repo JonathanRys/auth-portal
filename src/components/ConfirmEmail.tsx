@@ -57,7 +57,7 @@ const ConfirmEmail = () => {
     return (
         <>
             {success ? (
-                <section>
+                <section className="registration">
                     <h1>Email confirmed</h1>
                     <p>Your email has been confirmed.</p>                        
 
@@ -67,7 +67,7 @@ const ConfirmEmail = () => {
                     </p>
                 </section>
             ) : (
-                <section>
+                <section className="registration">
                     <p
                         ref={errRef} 
                         className={errMsg ? 'error': 'aria-hidden'}

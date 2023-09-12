@@ -130,7 +130,7 @@ const UpdatePassword = () => {
             {success ? (
                 <Navigate to="/gpt" />
             ) :(
-                <section>
+                <section className="registration">
                     <p
                         ref={errRef} 
                         className={errMsg ? 'error': 'aria-hidden'}
