@@ -35,7 +35,7 @@
 .query-icon {
   background-color: rgb(255, 251, 221);
   border-radius: 5px;
-  border: 1px solid black;
+  border: 1px solid 1px solid transparent;;
   color: rgb(240, 128, 128);
   cursor: pointer;
   font-size: 2em;
