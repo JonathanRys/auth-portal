@@ -1,5 +1,5 @@
 import { createContext, useState } from 'react';
-import { Props } from '../types/types'
+import { Props } from '../types/types';
 
 import { getCookie } from '../util/cookie';
 
