@@ -59,11 +59,11 @@ main {
 .chat-container,
 .input-container {
   position: relative;
-  width: 90%;
+  width: 98%;
 }
 
 .chat-container {
-  margin-top: 7rem;
+  margin-top: 5.5rem;
   overflow-y: hidden;
   display: flex;
   flex-direction: column;
@@ -100,6 +100,7 @@ textarea.user-input {
   font-family: 'Roboto';
   font-size: 1rem;
   padding: 0.5rem;
+  resize: none;
   word-wrap: break-word;
 }
 
@@ -117,16 +118,17 @@ section {
 section.user-query,
 section.gpt-reply {
   margin: 1rem 0;
-  max-width: 80%;
+  max-width: 90%;
 }
 
 section.user-query {
   background-color: rgba(240,240,240,0.9);
-  margin-left: 3rem;
+  margin-left: 1rem;
 }
 section.gpt-reply {
   background-color: rgba(192,255,192,0.9);
   margin-right: 2rem;
+  margin-left: -1rem;
 }
 
 form {
@@ -278,6 +280,9 @@ hr {
 @media screen and (min-width: 600px) {
   section {
     max-width: 420px;
+  }
+  .chat-container {
+    margin-top: 7rem;
   }
   .chat-container,
   .input-container {
