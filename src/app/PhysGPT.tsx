@@ -14,7 +14,6 @@ const Overlay = (props: OverlayProps) => {
 };
 
 interface ModalProps extends Props {
-    message?: string,
     title?: string,
     close: MouseEventHandler
 };

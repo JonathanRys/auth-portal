@@ -36,6 +36,34 @@ header {
   position: relative;
 }
 
+.overlay {
+  position: absolute;
+  background-color: rgba(255,255,255,0.7);
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  background: white;
+  border-radius: 1rem;
+  box-sizing: border-box;
+  max-height: 100vh;
+  max-width: 100vw;
+  padding: 1rem 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.link {
+  cursor: pointer;
+  color: #36c
+}
+
 main {
   display: flex;
   flex-direction: column;
