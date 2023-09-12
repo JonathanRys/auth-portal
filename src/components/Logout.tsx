@@ -24,7 +24,7 @@ const Logout = () => {
                     withCredentials: true
                 }
             );
-            setAuth({ 'user': response?.data?.username })
+            setAuth({ 'username': response?.data?.username })
             // Clear cookies
             setCookie('username', null);
             setCookie('authKey', null);

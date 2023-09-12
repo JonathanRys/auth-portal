@@ -28,7 +28,7 @@ const ConfirmEmail = () => {
                 });
         
                 setAuth({
-                    'user': response?.data?.username, 
+                    'username': response?.data?.username, 
                     'sessionKey': response?.data?.sessionKey,
                     'role': response?.data?.role,
                     'authKey': response?.data?.authKey
