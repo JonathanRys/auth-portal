@@ -7,7 +7,7 @@ import SetNewPassword from './components/SetNewPassword';
 import ResetPassword from './components/ResetPassword';
 import UpdatePassword from './components/UpdatePassword';
 import ConfirmEmail from './components/ConfirmEmail'
-import PhysGPT from './components/PhysGPT';
+import PhysGPT from './app/PhysGPT';
 import Unauthorized from './components/Unauthorized';
 import NotFound from './components/NotFound';
 import ProtectedRoute from './util/ProtectedRoute';
