@@ -91,15 +91,14 @@ const Registration = () => {
                 return;
                     
             } catch (e) {
-                console.log('Request error', e)
                 if (!e?.response) {
                     setErrMsg('No response from server.')
                 } else if (e.response?.status === 409) {
                     setErrMsg('Username already taken.');
                 } else if (e.response?.status >= 500) {
-                    setErrMsg('Server error.')
+                    setErrMsg('Server error')
                 } else {
-                    setErrMsg('Registration failed.')
+                    setErrMsg('Registration failed')
                 }
                 errRef.current.focus();
                 return;

@@ -52,8 +52,9 @@ header {
   background: white;
   border-radius: 1rem;
   box-sizing: border-box;
-  max-height: 100vh;
-  max-width: 100vw;
+  max-height: 90vh;
+  max-width: 90vw;
+  min-width: 50%;
   padding: 1rem 2rem;
   display: flex;
   flex-direction: column;
@@ -61,7 +62,8 @@ header {
 
 .link {
   cursor: pointer;
-  color: #36c
+  color: #36c;
+  display: inline-block;
 }
 
 main {

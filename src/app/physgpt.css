@@ -1,8 +1,9 @@
 .app-container {
+  align-items: center;
   background-color: rgba(255, 255, 255, 0.3);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  justify-content: space-between;
   position: absolute;
   top: 0;
   left: 0;
@@ -35,7 +36,7 @@
 .query-icon {
   background-color: rgb(255, 251, 221);
   border-radius: 5px;
-  border: 1px solid 1px solid transparent;;
+  border: 1px solid transparent;;
   color: rgb(240, 128, 128);
   cursor: pointer;
   font-size: 2em;
@@ -47,8 +48,9 @@
 }
 
 .query-icon:hover {
-  color: rgb(240, 64, 64);
-  background-color: rgb(255, 235, 205);
+  color: rgb(210, 64, 64);
+  background-color: rgb(245, 235, 205);
+  border-color: rgb(245, 235, 205);;
   text-shadow: 1px 1px 1px white,
               1px 1px 1px white,
               1px 1px 1px white,
@@ -91,13 +93,12 @@ section.gpt-reply {
 
 section.user-query {
   background-color: rgba(240,240,240,0.9);
-  margin-left: 1rem;
+  margin-left: 6%;
 }
 
 section.gpt-reply {
   background-color: rgba(192,255,192,0.9);
-  margin-right: 2rem;
-  margin-left: -1rem;
+  margin-right: 3%;
 }
 
 @media screen and (min-width: 600px) {
