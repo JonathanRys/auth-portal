@@ -11,6 +11,9 @@
 # production
 /build
 
+# Put your app here
+/src/app
+
 # misc
 .DS_Store
 *.env
