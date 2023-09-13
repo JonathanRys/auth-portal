@@ -124,6 +124,27 @@ button:disabled {
   cursor: default;
 }
 
+div.loading {
+  cursor: progress;
+}
+
+@keyframes spinner {
+  to { transform: rotate(360deg) }
+}
+
+.fa-spin {
+  animation: spinner 1s linear infinite;
+}
+
+div.disabled,
+svg.disabled,
+textarea.disabled {
+  background-color:#bbb;
+  color:#777;
+  cursor: progress;
+  pointer-events: none;
+}
+
 hr {
   width: 100%;
   margin-top: 1.5rem;
