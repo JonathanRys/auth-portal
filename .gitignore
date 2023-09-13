@@ -31,7 +31,7 @@ config.py
 __pycache__/
 *.pyc
 .pytest_cache
-/api/.venv/
+/apis/.venv/
 
 # state contains sensitive info
 .terraform/

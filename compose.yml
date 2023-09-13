@@ -4,7 +4,7 @@ services:
     ports:
       - "80:80"
   auth_api:
-    build: ./api
+    build: ./apis
     ports:
       - "8000:80"
     environment:

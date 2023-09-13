@@ -6,5 +6,5 @@
 .git
 .pytest_cache
 .vscode
-api
+apis
 node_modules
