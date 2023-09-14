@@ -16,7 +16,7 @@ const Registration = () => {
     const userRef = useRef<HTMLInputElement>();
     const errRef = useRef<HTMLParagraphElement>();
 
-    const [user, setUser] = useState('');
+    const [username, setUsername] = useState('');
     const [userValid, setUserValid] = useState(false);
     const [userFocus, setUserFocus] = useState(false);
 
@@ -36,21 +36,21 @@ const Registration = () => {
     }, [])
 
     useEffect(() => {
-        setUserValid(isValidEmail(user))
-    }, [user])
+        setUserValid(isValidEmail(username))
+    }, [username])
 
     useEffect(() => {
         setPasswordValid(isValidPassword(password))
         setMatchValid(password === pwMatch)
     }, [password, pwMatch])
 
-    useEffect(() => setErrMsg(''), [user, password, pwMatch])
+    useEffect(() => setErrMsg(''), [username, password, pwMatch])
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         switch (true) {
         case !userValid:
-        case !isValidEmail(user):
+        case !isValidEmail(username):
             setErrMsg('Invalid username.');
             return;
         case !passwordValid:
@@ -63,11 +63,11 @@ const Registration = () => {
         default:
             try{
                 const response = await axios.post(REGISTER_URL, 
-                    JSON.stringify({
-                        user, password
-                    }), {
-                        headers: { 'Content-Type': 'application/json' },
-                        withCredentials: true
+                    {
+                        "username": username,
+                        "password": password
+                    }, {
+                        withCredentials: true // send cookies
                     }
                 );
 
@@ -75,17 +75,17 @@ const Registration = () => {
                     throw new Error(`Request failed with status ${response?.status}`);
                 }
 
-                const accessToken = response?.data?.accessToken;
-                const roles = response?.data?.roles;
+                const authKey = response?.data?.authKey;
+                const role = response?.data?.role;
 
-                setAuth({ user, password, roles, accessToken });
-                setCookie('user', user);
-                setCookie('roles', roles);
-                setCookie('accessToken', accessToken);
+                setAuth({ username, role, authKey });
+                setCookie('username', username);
+                setCookie('role', role);
+                setCookie('authKey', undefined); // Set this when email is confirmed
                 
                 setSuccess(true);
                 // clear inputs
-                setUser('');
+                setUsername('');
                 setPassword('');
                 setPwMatch('');
                 return;
@@ -96,9 +96,9 @@ const Registration = () => {
                 } else if (e.response?.status === 409) {
                     setErrMsg('Username already taken.');
                 } else if (e.response?.status >= 500) {
-                    setErrMsg('Server error.')
+                    setErrMsg('Server error')
                 } else {
-                    setErrMsg('Registration Failed.')
+                    setErrMsg('Registration failed')
                 }
                 errRef.current.focus();
                 return;
@@ -109,32 +109,30 @@ const Registration = () => {
     return (
             <>
                 {success ? (
-                    <section>
-                        <p>
-                            <a href='/gpt'>Enter</a>
-                        </p>
+                    <section className="registration">
+                        <p>Please check your email for a confirmation link.</p>
                     </section>
-                ) : (<section>
+                ) : (<section className="registration">
                     <p ref={errRef} className={errMsg ? 'error' : 'aria-hidden'} aria-live="assertive">{errMsg}</p>
                     <h1>Register</h1>
                     <form onSubmit={handleSubmit}>
                         <label htmlFor="username">
                             Email:
                             <span className={userValid ? 'valid' : 'hidden'}><FontAwesomeIcon icon={faCheck} /></span>
-                            <span className={userValid || !user ? 'hidden' : 'invalid'}><FontAwesomeIcon icon={faTimes} /></span>
+                            <span className={userValid || !username ? 'hidden' : 'invalid'}><FontAwesomeIcon icon={faTimes} /></span>
                         </label>
                         <input
                             type="email"
                             id="username"
                             ref={userRef}
-                            onChange={(e) => setUser(e.target.value)}
+                            onChange={(e) => setUsername(e.target.value)}
                             required
                             aria-invalid={userValid ? "false" : "true"}
                             aria-describedby="uidnote"
                             onFocus={() => setUserFocus(true)}
                             onBlur={() => setUserFocus(false)}
                         />
-                        <p id="uidnote" className={userFocus && user && !userValid ? 'instructions'  : 'aria-hidden'}>
+                        <p id="uidnote" className={userFocus && username && !userValid ? 'instructions'  : 'aria-hidden'}>
                             <FontAwesomeIcon icon={faInfoCircle} />
                             Please enter a valid email address.
                         </p>
@@ -164,7 +162,7 @@ const Registration = () => {
 
                         <label htmlFor="confirm-password">
                             Confirm Password:
-                            <span className={matchValid && pwMatch ? 'valid' : 'hidden'}><FontAwesomeIcon icon={faCheck} /></span>
+                            <span className={matchValid && pwMatch && passwordValid ? 'valid' : 'hidden'}><FontAwesomeIcon icon={faCheck} /></span>
                             <span className={matchValid || !pwMatch ? 'hidden' : 'invalid'}><FontAwesomeIcon icon={faTimes} /></span>
                         </label>
                         <input

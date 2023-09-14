@@ -1,21 +1,21 @@
-import { useState, useEffect, useRef, useContext, FormEvent } from 'react';
+import { useState, useEffect, useRef, FormEvent } from 'react';
+import { faCheck, faTimes, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { setCookie } from '../util/cookie';
-import AuthContext from '../context/AuthProvider';
+import { isValidEmail } from '../util/validations';
 import axios from '../api/axios';
 
-const RESET_PASSWORD_URL = '/reset_password';
+const RESET_PW_URL = '/reset_password';
 
 const ResetPassword = () => {
-    // @ts-ignore
-    const { setAuth } = useContext(AuthContext);
-
     const userRef = useRef<HTMLInputElement>();
     const errRef = useRef<HTMLParagraphElement>();
 
-    const [user, setUser] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
+    const [username, setUsername] = useState('');
+    const [userValid, setUserValid] = useState(false);
+    const [userFocus, setUserFocus] = useState(false);
+
     const [errMsg, setErrMsg] = useState('');
     // temp until navigation is set up
     const [success, setSuccess] = useState(false);
@@ -25,96 +25,91 @@ const ResetPassword = () => {
     }, [])
 
     useEffect(() => {
-        setErrMsg('');
-    }, [user, password])
+        setUserValid(isValidEmail(username))
+    }, [username])
+
+    useEffect(() => setErrMsg(''), [username])
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        switch (true) {
+            case !userValid:
+            case !isValidEmail(username):
+                setErrMsg('Invalid username.');
+                return;
+            default:
+                try {
+                    const response = await axios.post(RESET_PW_URL, 
+                        {
+                            "username": username
+                        }, {
+                            withCredentials: true
+                        }
+                    );
 
-        try {
-            const response = await axios.post(RESET_PASSWORD_URL, 
-                JSON.stringify({
-                    user, password
-                }), {
-                    headers: { 'Content-Type': 'application/json' },
-                    withCredentials: true
+                    if (response?.status !== 200) {
+                        throw new Error(`Request failed with status ${response?.status}`);
+                    }
+
+                    setCookie('username', username);
+                    setSuccess(true);
+                } catch (e) {
+                    if (e?.response) {
+                        setErrMsg('No server response');
+                    } else if (e.response?.status === 409) {
+                        // missing username or password
+                        setErrMsg('Missing username or password.')
+                    } else if (e.response?.status === 401) {
+                        setErrMsg('Unauthorized.');
+                    } else {
+                        setErrMsg('Login Failed.')
+                    }
+                    errRef?.current.focus();        
                 }
-            );
-
-            if (response?.status !== 200) {
-                throw new Error(`Request failed with status ${response?.status}`);
-            }
-
-            const accessToken = response?.data?.accessToken;
-            const roles = response?.data?.roles;
-
-            setAuth({ user, password, roles, accessToken })
-            setCookie('user', user);
-            setCookie('roles', roles);
-            setCookie('accessToken', accessToken);
-
-            setUser('');
-            setPassword('');
-            setSuccess(true);
-        } catch (e) {
-            if (e?.response) {
-                setErrMsg('No server response');
-            } else if (e.response?.status === 409) {
-                // missing username or password
-                setErrMsg('Missing username or password.')
-            } else if (e.response?.status === 401) {
-                setErrMsg('Unauthorized.');
-            } else {
-                setErrMsg('Login Failed.')
-            }
-            errRef.current.focus();
         }
     }
 
     return (
         <>
             {success ? (
-                <div>You have access to our content!</div>
+                <section className="registration">
+                    <h1>Password reset email sent</h1>
+                    <p>Please check your email for a reset link.</p>
+                </section>
             ) :(
-                <section>
+                <section className="registration">
                     <p
                         ref={errRef} 
                         className={errMsg ? 'error': 'aria-hidden'}
                         aria-live="assertive">
                         {errMsg}
                     </p>
-                    <h1>Sign in</h1>
+                    <h1>Reset Password</h1>
                     <form onSubmit={handleSubmit}>
-                        <label htmlFor="username">Email:</label>
-                        <input 
+                    <label htmlFor="username">
+                            Email:
+                            <span className={userValid ? 'valid' : 'hidden'}><FontAwesomeIcon icon={faCheck} /></span>
+                            <span className={userValid || !username ? 'hidden' : 'invalid'}><FontAwesomeIcon icon={faTimes} /></span>
+                        </label>
+                        <input
                             type="email"
                             id="username"
                             ref={userRef}
-                            onChange={e => setUser(e.target.value)}
-                            value={user}
+                            onChange={(e) => setUsername(e.target.value)}
                             required
+                            aria-invalid={userValid ? "false" : "true"}
+                            aria-describedby="uidnote"
+                            onFocus={() => setUserFocus(true)}
+                            onBlur={() => setUserFocus(false)}
                         />
-                        <label htmlFor="password">Password:</label>
-                        <input 
-                            type="password"
-                            id="password"
-                            onChange={e => setPassword(e.target.value)}
-                            value={password}
-                            required
-                        />
-                        <label htmlFor="password">Confirm password:</label>
-                        <input 
-                            type="password"
-                            id="confirm-password"
-                            onChange={e => setConfirmPassword(e.target.value)}
-                            value={password}
-                            required
-                        />
-                        <button disabled={!user || !password || !confirmPassword ? true : false}>Set Password</button>
+                        <p id="uidnote" className={userFocus && username && !userValid ? 'instructions'  : 'aria-hidden'}>
+                            <FontAwesomeIcon icon={faInfoCircle} />
+                            Please enter a valid email address.
+                        </p>
+                        <button disabled={!username}>Reset password</button>
                         <p>
-                            Need an account?<br/>
                             <span className="inline">
-                                <a href="/register">Sign Up</a>
+                                <a href="/">Cancel</a>
                             </span>
                         </p>
                     </form>
