@@ -5,6 +5,10 @@
     <link rel="icon" href="./favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="manifest" href="./manifest.json" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Play:wght@700&family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
 
     <title>Phys GPT</title>
   </head>
@@ -14,21 +18,34 @@
     <script>
       window.onload = () => {
         const backgrounds = [
+          "./bg/AI_deep_space.webp",
+          "./bg/atomic_bg.jpg",
           "./bg/binary_stars_bg.jpg",
           "./bg/bit_orb_bg.jpg",
           "./bg/chalkboard_bg.jpg",
-          "./bg/magnetic_spin_bg.jpg",
+          "./bg/fractal_2_bg.jpg",
+          "./bg/fractal_bg.jpg",
+          "./bg/higgs_machine_bg.jpg",
+          "./bg/magnetic_field_bg.jpg",
+          "./bg/magnetic_spin_bg.webp",
           "./bg/nucleus_bg.jpg",
           "./bg/orbitals_bg.jpg",
           "./bg/particle_collision_bg.jpg",
-          "./bg/portal_bg.jpg",
+          "./bg/pillars_of_creation_bg.jpg",
+          "./bg/plasma_fusion_reactor_bg.jpg",
           "./bg/quantum_bg.jpg",
-          "./bg/quantum_mechanics_bg.webp",
-          "./bg/quantum_physics_2_bg.jpg",
+          "./bg/superconductors_bg.jpeg",
+          "./bg/silicon_wafer_bg.jpg",
+          "./bg/string_theory_bg.jpg",
           "./bg/quantum_physics_bg.jpg",
           "./bg/quantum_theory_web_bg.jpg",
+          "./bg/science_bg.jpg",
+          "./bg/refinery_bg.jpg",
+          "./bg/graphene_bg.jpg",
+          "./bg/tarantula_bg.jpg",
+          "./bg/tesla_coil_bg.jpg",
           "./bg/twisting_matrix_bg.jpg",
-          "./bg/vector_bg.jpg"
+          "./bg/ufo_bg.jpg",
         ]
         index = Math.floor(Math.random() * backgrounds.length);
         document.getElementsByTagName('body')[0].style.backgroundImage=`url(${backgrounds[index]})`

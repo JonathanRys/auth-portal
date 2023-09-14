@@ -11,8 +11,12 @@
 # production
 /build
 
+# Put your app here
+/src/app
+
 # misc
 .DS_Store
+*.env
 .env.local
 .env.development.local
 .env.test.local
@@ -25,5 +29,10 @@ yarn-error.log*
 # api
 config.py
 __pycache__/
+*.pyc
 .pytest_cache
-/api/venv/
+/apis/.venv/
+
+# state contains sensitive info
+.terraform/
+.terraform.*

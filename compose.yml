@@ -1,0 +1,22 @@
+services:
+  web:
+    build: .
+    ports:
+      - "80:80"
+  auth_api:
+    build: ./apis
+    ports:
+      - "8000:80"
+    environment:
+      AWS_REGION: "us-east-1"
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    secrets:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+
+secrets:
+  AWS_ACCESS_KEY_ID:
+    file: AWS_ACCESS_KEY_ID.env
+  AWS_SECRET_ACCESS_KEY:
+    file: AWS_SECRET_ACCESS_KEY.env
